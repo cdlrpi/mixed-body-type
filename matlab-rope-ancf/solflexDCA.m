@@ -25,6 +25,8 @@ for i  = 1:ne
     
     ipe(:,i) = [e1 e2 e3 e4 e5 e6 e7 e8]';
 end
+
+
 [M11 M12 M21 M22 eta1 iM22]  = MassMatrix(l,rho,A);
 M    =  [M11, M12; M21, M22];
 iM   =  inv(M);
