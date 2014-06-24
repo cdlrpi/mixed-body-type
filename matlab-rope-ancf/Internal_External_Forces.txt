@@ -1,0 +1,253 @@
+restart
+with(Student[VectorCalculus])
+
+with(DETools); with(LinearAlgebra)
+
+e := Matrix(8, 1, [e1, e2, e3, e4, e5, e6, e7, e8])
+ed := Matrix(8, 1, [ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8])
+s1 := 1-3*(x/l)^2+2*(x/l)^3
+s2 := x/l-2*(x/l)^2+(x/l)^3
+s3 := 3*(x/l)^2-2*(x/l)^3
+s4 := (x/l)^3-(x/l)^2
+S := Matrix(2, 8, [s1, 0, s2*l, 0, s3, 0, s4*l, 0, 0, s1, 0, s2*l, 0, s3, 0,
+s4*l])
+
+??> print(); # input placeholder
+V := S.ed
+??> print(); # input placeholder
+Vpp := Vector([V(1), V(2), 0], coordinates = cartesian[x, y, z])
+Vpp1 := subs({x = 0}, Vector([V(1), V(2), 0], coordinates = cartesian[x, y, z]))
+??> print(); # input placeholder
+Vpp2 := subs({x = l}, Vector([V(1), V(2), 0], coordinates = cartesian[x, y, z]))
+??> print(); # input placeholder
+r := S.e
+
+vp1 := diff(Vpp, ed1)
+??> print(); # input placeholder
+vp2 := diff(Vpp, ed2)
+??> print(); # input placeholder
+vp3 := diff(Vpp, ed3)
+??> print(); # input placeholder
+vp4 := diff(Vpp, ed4)
+??> print(); # input placeholder
+
+vp5 := diff(Vpp, ed5)
+??> print(); # input placeholder
+vp6 := diff(Vpp, ed6)
+vp7 := diff(Vpp, ed7)
+vp8 := diff(Vpp, ed8)
+
+
+vp01 := diff(Vpp1, ed1)
+> %;
+vp02 := diff(Vpp1, ed2)
+??> print(); # input placeholder
+vp03 := diff(Vpp1, ed3)
+??> print(); # input placeholder
+vp04 := diff(Vpp1, ed4)
+??> print(); # input placeholder
+
+vp05 := diff(Vpp1, ed5)
+??> print(); # input placeholder
+vp06 := diff(Vpp1, ed6)
+vp07 := diff(Vpp1, ed7)
+vp08 := diff(Vpp1, ed8)
+
+vpl1 := diff(Vpp2, ed1)
+> %;
+vpl2 := diff(Vpp2, ed2)
+??> print(); # input placeholder
+vpl3 := diff(Vpp2, ed3)
+??> print(); # input placeholder
+vpl4 := diff(Vpp2, ed4)
+??> print(); # input placeholder
+
+vpl5 := diff(Vpp2, ed5)
+??> print(); # input placeholder
+vpl6 := diff(Vpp2, ed6)
+vpl7 := diff(Vpp2, ed7)
+vpl8 := diff(Vpp2, ed8)
+
+Rt1 := Matrix(3, 3, [e3(t), -e4(t), 0, e4(t), e3(t), 0, 0, 0,
+(e3(t)^2+e4(t)^2)^.5])/(e3(t)^2+e4(t)^2)^.5
+??> print(); # input placeholder
+Rd1 := map(diff, Rt1, t)
+??> print(); # input placeholder
+w1 := simplify(subs({diff(e3(t), t) = ed3, diff(e4(t), t) = ed4, e3(t) = e3,
+e4(t) = e4}, Rd1.Rt1^%T))
+??> print(); # input placeholder
+
+??> print(); # input placeholder
+
+w13 := w1(2)
+omega1 := Vector([0, 0, w13], coordinates = cartesian[x, y, z])
+??> print(); # input placeholder
+Rt2 := Matrix(3, 3, [e7(t), -e8(t), 0, e8(t), e7(t), 0, 0, 0,
+1])/(e7(t)^2+e8(t)^2)^.5
+??> print(); # input placeholder
+Rd2 := map(diff, Rt2, t)
+??> print(); # input placeholder
+w2 := simplify(subs({diff(e7(t), t) = ed7, diff(e8(t), t) = ed8, e7(t) = e7,
+e8(t) = e8}, Rd2.Rt2^%T))
+??> print(); # input placeholder
+
+??> print(); # input placeholder
+w23 := w2(2)
+??> print(); # input placeholder
+omega2 := Vector([0, 0, w23], coordinates = cartesian[x, y, z])
+
+??> print(); # input placeholder
+
+wp01 := diff(omega1, ed1)
+> %;
+wp02 := diff(omega1, ed2)
+??> print(); # input placeholder
+wp03 := diff(omega1, ed3)
+??> print(); # input placeholder
+wp04 := diff(omega1, ed4)
+??> print(); # input placeholder
+
+wp05 := diff(omega1, ed5)
+??> print(); # input placeholder
+wp06 := diff(omega1, ed6)
+??> print(); # input placeholder
+wp07 := diff(omega1, ed7)
+wp08 := diff(omega1, ed8)
+??> print(); # input placeholder
+
+wpl1 := diff(omega2, ed1)
+> %;
+wpl2 := diff(omega2, ed2)
+??> print(); # input placeholder
+wpl3 := diff(omega2, ed3)
+??> print(); # input placeholder
+wpl4 := diff(omega2, ed4)
+??> print(); # input placeholder
+
+wpl5 := diff(omega2, ed5)
+??> print(); # input placeholder
+wpl6 := diff(omega2, ed6)
+wpl7 := diff(omega2, ed7)
+wpl8 := diff(omega2, ed8)
+
+
+
+fg1 := Vector([0, -rho*A*g, 0], coordinates = cartesian[x, y, z])
+??> print(); # input placeholder
+
+Mom := Vector([0, 0, Tor], coordinates = cartesian[x, y, z])
+________________________
+Strain Energy
+
+Sl := simplify(map(diff, S, x)^%T.map(diff, S, x))
+??> print(); # input placeholder
+Sll := simplify(map(diff, map(diff, S, x), x)^%T.map(diff, map(diff, S, x), x))
+??> print(); # input placeholder
+er := Matrix(8, 1, [0, 0, 1, 0, l, 0, 1, 0])
+epsilon2 := ((1/2)*((e-er)^%T.Sl.(e+er)))(1)^2
+??> print(); # input placeholder
+
+Ul := (1/2)*Y*A*(int(epsilon2, x = 0 .. l))
+
+kappa2 := (e^%T.Sll.e)(1)
+
+
+Ut := (1/2)*Y*II*(int(kappa2, x = 0 .. l))
+??> print(); # input placeholder
+
+
+U := Ul+Ut
+p1 := simplify(-(diff(U, e1)))
+??> print(); # input placeholder
+p2 := simplify(-(diff(U, e2)))
+??> print(); # input placeholder
+p3 := simplify(-(diff(U, e3)))
+??> print(); # input placeholder
+p4 := simplify(-(diff(U, e4)))
+??> print(); # input placeholder
+p5 := simplify(-(diff(U, e5)))
+??> print(); # input placeholder
+p6 := simplify(-(diff(U, e6)))
+??> print(); # input placeholder
+p7 := simplify(-(diff(U, e7)))
+??> print(); # input placeholder
+p8 := simplify(-(diff(U, e8)))
+
+
+
+________________________
+beta1 := int(vp1.fg1, x = 0 .. l)+p1+wp01.Mom
+??> print(); # input placeholder
+beta2 := int(vp2.fg1, x = 0 .. l)+p2+wp02.Mom
+??> print(); # input placeholder
+
+beta3 := int(vp3.fg1, x = 0 .. l)+p3+wp03.Mom
+??> print(); # input placeholder
+> 
+??> print(); # input placeholder
+beta4 := int(vp4.fg1, x = 0 .. l)+p4+wp04.Mom
+??> print(); # input placeholder
+
+beta5 := int(vp5.fg1, x = 0 .. l)+p5+wp05.Mom
+beta6 := int(vp6.fg1, x = 0 .. l)+p6+wp06.Mom
+??> print(); # input placeholder
+
+beta7 := int(vp7.fg1, x = 0 .. l)+p7+wp07.Mom
+beta8 := int(vp8.fg1, x = 0 .. l)+p8+wp08.Mom
+
+
+with(CodeGeneration)
+
+
+Matlab(beta1, resultname = 'beta1')
+> %;
+
+> %;
+
+Matlab(beta2, resultname = 'beta2')
+> %;
+Matlab(beta3, resultname = 'beta3')
+> %;
+Matlab(beta4, resultname = 'beta4')
+> %;
+
+> %;
+> %;
+Matlab(beta5, resultname = 'beta5')
+> %;
+Matlab(beta6, resultname = 'beta6')
+> %;
+Matlab(beta7, resultname = 'beta7')
+> %;
+Matlab(beta8, resultname = 'beta8')
+> %;
+
+
+Se := U
+Pe := int(rho*A*g*r(2), x = 0 .. l)
+??> print(); # input placeholder
+Matlab(Pe, resultname = 'PE')
+> %;
+Matlab(Se, resultname = 'SE')
+> %;
+
+M1 := int(10*sin(3*Pi*t)*w, t = 0 .. t)
+`output redirected...`> print(); # input placeholder
+                            10 w (-1 + cos(3 Pi t))
+                          - -----------------------
+                                     3 Pi          
+M2 := int(465.8838298*exp(-16.324194*t)*w, t = 0 .. t)
+`output redirected...`> print(); # input placeholder
+              28.53946907 w - 28.53946907 exp(-16.32419400 t) w
+Matlab(M1, resultname = 'M2')
+> %;
+M2 = -w * (-0.1e1 + cos(0.3e1 * pi * t)) / pi / 0.3e1;
+> Matlab(M2, resultname = 'M2')
+> %;
+Warning, inserted missing semicolon at end of statement
+M2 = 0.2853946907e2 * w - 0.2853946907e2 * exp(-0.1632419400e2 * t) * w;
+Matlab(omega1, resultname = 'M2')
+> %;
+Warning, rtable option attributes ignored
+M2 = [0 0 0.1e1 / (e3 ^ 2 + e4 ^ 2) * (-0.1e1 * e4 * ed3 + e3 * ed4)];
+
