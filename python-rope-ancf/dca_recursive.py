@@ -1,16 +1,14 @@
 import numpy as np
 import math
-from scipy.integrate import odeint
-import matplotlib.pyplot as plt
 
 import MBstructs as MB
-import MultiBodyFuncts as MBF
 
-def openR(n,i,bodies,joints,BC1,BC2,xinits): 
+def dca_recursive(n,i,bodies,joints,BC1,BC2,xinits):
     """
-    This function uses the DCA to form and solve the equations of motion.
+    This function applies the DCA Algorithm to a compound pendulum 
+    system, regardless of the number of links.  Recursion is 
+    used to assemble and disassemble the system.
     """
-    
     #This if statements is the recursive case of this function.
     #Inside this if statement the current list of bodies is
     #assembled into a smaller list and passed back to this function.
@@ -23,12 +21,12 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
         #new bodies
         newbds=[]
         if (len(bodies)%2)==0:
-            for k in range (0,math.trunc(len(bodies)/2)):
-                newbds.append(MB.Body())
+            for k in range(len(bodies)//2):
+                newbds.append(MB.Rigid_Body())
         else:
             odd=1
-            for k in range (0,math.trunc(len(bodies)/2)+1):
-                newbds.append(MB.Body())
+            for k in range(len(bodies)//2+1):
+                newbds.append(MB.Rigid_Body())
             
         #Loop through all of the new bodies, assembling the correct two
         #"old" bodies to create the new.
@@ -37,12 +35,12 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
             #if there are an odd # of bodies and we're at the last 
             #body in newbds, add the last body to newbds
             if j == len(newbds)-1 and odd == 1:
-                newbds[j].z11=np.zeros((6,6))
-                newbds[j].z12=np.zeros((6,6))
-                newbds[j].z13=np.zeros((6))
-                newbds[j].z21=np.zeros((6,6))
-                newbds[j].z22=np.zeros((6,6))
-                newbds[j].z23=np.zeros((6))
+                # newbds[j].z11=np.zeros((6,6))
+                # newbds[j].z12=np.zeros((6,6))
+                # newbds[j].z13=np.zeros((6))
+                # newbds[j].z21=np.zeros((6,6))
+                # newbds[j].z22=np.zeros((6,6))
+                # newbds[j].z23=np.zeros((6))
                 newbds[j].z11[:,:]=bodies[2*j].z11[:,:]
                 newbds[j].z12[:,:]=bodies[2*j].z12[:,:]
                 newbds[j].z21[:,:]=bodies[2*j].z21[:,:]
@@ -72,12 +70,12 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
         
         #Find the new joints corresponding to the new bodies
         newjs=[]
-        for k in range (0,len(newbds)):
+        for k in range(len(newbds)):
             newjs.append(MB.Joint())
         
         
         #loop that brings along the P and D matrices from the previous joints
-        for j in range(0,len(newjs)):
+        for j in range(len(newjs)):
             if j==len(newjs)-1 and odd ==1:
                 newjs[j].D=joints[len(joints)-1].D
                 newjs[j].P=joints[len(joints)-1].P
@@ -97,7 +95,7 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
         #At this point this function will repeat itself in a loop until there is
         #one body left
 
-        sol=openR(n,i+1,newbds,newjs,BC1,BC2,xinits)
+        sol=recursiveDCA(n,i+1,newbds,newjs,BC1,BC2,xinits)
        
         
         #Forces and Accelerations at the new joints are found,
@@ -114,7 +112,7 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
         #acceleration on its other handle. These values are added to the new
         #solution list, along with the next values in sol.
         flag=0
-        for j in range(0,len(newbds)):
+        for j in range(len(newbds)):
             
             #Don't enter this if there are an odd number of bodies and it 
             #is the last time through the loop, otherwise enter.
@@ -160,6 +158,7 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
         
         #If this is the 0th level of recursion, delete all the forces 
         #so only the accellerations are returned
+   
         if i ==0:
             for j in range (1,2*n+1):
                 del newsol[j]
@@ -185,22 +184,23 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
         mat=np.zeros((3,4))
         mat[:,:3]=bodies[0].z11[3:,3:]
         mat[:,3]=-1*bodies[0].z13[3:]
-        
+       
         #Loop to put a matrix in reduced row echelon form
         for s in range(0,3):
             mat[s,:]=mat[s,:]/mat[s,s]
             for j in range(0,3):
                 if s !=j:
                     mat[j,:]=mat[j,:]-(mat[s,:]*mat[j,s])
-    
+        
+       
         Fc1=np.zeros_like(Fc2)
         Fc1[3:]=mat[:,3]
 
         #solve for the A's given Fc2=0
         A1=np.dot(bodies[0].z11,Fc1)+bodies[0].z13
+        
         A2=np.dot(bodies[0].z21,Fc1)+bodies[0].z23
         sol=[A1,Fc1,A2,Fc2]
-        
         #return the forces and accellerations at the end joints
         #and begin disassembly
         return sol  

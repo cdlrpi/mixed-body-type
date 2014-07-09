@@ -48,7 +48,7 @@ ST = [];
 PT = [];
 KT = [];
 T  = [];
-%% Animation
+% Animation
 x    = 0:0.01:l;
 count = 1;
 for i = 1:20:length(Time)

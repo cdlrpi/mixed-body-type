@@ -1,0 +1,71 @@
+%        File: dca-equaitons.tex
+%     Created: Tue Jul 08 04:00 PM 2014 E
+% Last Change: Tue Jul 08 04:00 PM 2014 E
+%
+\documentclass[a4paper]{article}
+
+\usepackage{amssymb,amsmath}
+\usepackage{mathtools}
+\usepackage{isomath}
+\usepackage{natbib}
+\usepackage{nomencl}
+
+\makenomenclature
+\begin{document}
+\section{Nomenclature}
+\nomenclature{$a$}{The number of angels per unit area}%
+\printnomenclature
+\section{Equations of Motion for A GEBF Element}
+The equations of motion for a GEBF element are  
+\begin{align}
+  \dot{\vectorsym{h}} &= \vectorsym{N}^{'} + \vectorsym{f}  
+  \label{eq:eom_linear_momentum}
+  \shortintertext{and} 
+  \dot{\vectorsym{g}} &= -\matrixsym{\tilde{\dot{u}}} \vectorsym{h} + \left( \matrixsym{\tilde{x_{0}^{'}}} + \matrixsym{\tilde{u^{'}}} \right) \vectorsym{N} + \vectorsym{M}^{'} + \vectorsym{\tau} ,
+  \label{eq:eom_angular_momentum}
+\end{align}
+as given by Bauchau \cite{bauchau2010flexible}. 
+
+\section{Formulation of the ``Two-Handle Equations'' of Motion}
+Equations~(\ref{eq:eom_linear_momentum}~\&~\ref{eq:eom_angular_momentum}) can be expressed in matrix form as  
+\begin{align}
+  \begin{Bmatrix}
+   \dot{\vectorsym{h}} \\ 
+   \dot{\vectorsym{g}}
+  \end{Bmatrix} &=
+  \begin{bmatrix}
+    \matrixsym{0} & \matrixsym{0} \\
+    -\matrixsym{\tilde{\dot{u}}} & \matrixsym{0} 
+  \end{bmatrix}
+  \begin{Bmatrix}
+   \vectorsym{h} \\ 
+   \vectorsym{g}
+  \end{Bmatrix} +
+  \begin{bmatrix}
+    \matrixsym{0} & \matrixsym{0} \\
+    \matrixsym{\tilde{x_{0}^{'}}} + \matrixsym{\tilde{u^{'}}} & \matrixsym{0}
+  \end{bmatrix}
+  \begin{Bmatrix}
+   \vectorsym{N} \\ 
+   \vectorsym{M}
+  \end{Bmatrix} +
+  \begin{Bmatrix}
+    \vectorsym{N^{'}} \\ 
+    \vectorsym{M^{'}}
+  \end{Bmatrix} +
+  \begin{Bmatrix}
+    \vectorsym{f} \\ 
+    \vectorsym{\tau}
+  \end{Bmatrix} \ , 
+  \label{eq:eom_momentum}
+\end{align} 
+where the $\tilde{\left( \ \right)}$ is the skew symetric matrix of the vector quantity $\left( \  \right)$ and $\left( \ \right)^{'}$ is the derivative with respect to the coordinate along the beam axis of $\left( \ \right)$.
+
+
+\section{References}
+\bibliographystyle{plain}
+\bibliography{library}
+
+\end{document}
+
+
