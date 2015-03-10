@@ -7,7 +7,6 @@ from numpy.linalg import inv
 
 #Body is the class that defines a single body in a multibody system
 class Rigid_Body:
-	
         def __init__(self, I1, I2, I3, q, r, x, v):
 		self.I=np.array(((I1,0,0),(0,I2,0),(0,0,I3)))
 	
@@ -98,7 +97,6 @@ class Rigid_Body:
 
 #Joint is the class that defines a single joint in a multibody system		
 class Joint:
-
     # Function to create the P and D matrices
     def __init__(self,v,x):
         if x == 0:
@@ -118,7 +116,6 @@ class Joint:
                     k=k+1
 
 class ANCF_Element():
-
     def __init__(self, area, modulus, inertia, density, length, state):
         """
         Initializes all of the inertial propertias of the element and assigns values to physical and material properties 
@@ -133,8 +130,8 @@ class ANCF_Element():
         M = pickle.load( open( "mass-matrix.dump", "rb" ) ).subs([(A, area), (l, length), (rho, density)])
         
         # load the body and applied force vector (this still has sympolic 'e' values)
-        self.beta = pickle.load( open( "force-vector.dump", "rb" ) ).subs([(E, modulus), (A, area), (I, inertia), (rho, density), (l, length)])
-
+        self.beta = pickle.load( open( "force-vector.dump", "rb" ) ).subs([(E, modulus), (A, area), \
+                                                                           (I, inertia), (rho, density), (l, length)])
 
         # Partition mass matrix
         self.M11 = np.array(M[0:4,0:4])
@@ -184,3 +181,70 @@ class ANCF_Element():
         # partition beta into lambda13 and lambda23
         self.lambda13 = beta[0:4]
         self.lambda23 = beta[4:8]
+
+class GEBF_Element():
+    def __init__(self, area, modulus, inertia, density, length, state):
+        """
+        Initializes all of the inertial propertias of the element and assigns values to physical and material properties 
+        """
+
+        # re-make symbols for proper substitution
+        e = sym.Matrix(sym.symarray('e',12))
+        # symbolic system parameters 
+        E, I, A, rho, l, = sym.symbols('E I A rho l')
+
+        # Load symbolic mass matrix
+        M = pickle.load( open( "mass-matrix.dump", "rb" ) ).subs([(A, area), (l, length), (rho, density)])
+        
+        # load the body and applied force vector (this still has sympolic 'e' values)
+        self.beta = pickle.load( open( "force-vector.dump", "rb" ) ).subs([(E, modulus), (A, area), \
+                                                                           (I, inertia), (rho, density), (l, length)])
+
+        # Partition mass matrix
+        self.M11 = np.array(M[0:6,0:6])
+        self.M12 = np.array(M[0:6,6:12])
+        self.M21 = np.array(M[6:12,0:6])
+        self.M22 = np.array(M[6:12,6:12])
+
+        # For now 
+        self.lambda11 = np.eye(6)
+        self.lambda12 = np.zeros((6,6))
+        self.lambda22 = np.eye(6)
+        self.lambda21 = np.zeros((6,6))
+        
+        # fully numberic (initial) values for body and applied forces
+        e_sub = [(e, ei) for e, ei in zip(e, state)]
+        beta = self.beta.subs(e_sub)
+
+        # partition beta into lambda13 and lambda23
+        self.lambda13 = np.array(beta[0:6])
+        self.lambda23 = np.array(beta[6:12])
+
+
+        # Commonly inverted quantities
+        Gamma = inv(self.M11 - self.M12*inv(self.M22)*self.M21)
+        iM22 = inv(self.M22)
+
+        # Compute all terms of the two handle equations
+        self.zeta11 = Gamma.dot(self.lambda11 - self.M12.dot(iM22.dot(self.lambda21)))
+        self.zeta12 = Gamma.dot(self.lambda12 - self.M12.dot(iM22.dot(self.lambda22)))
+        self.zeta13 = Gamma.dot(self.lambda13 - self.M12.dot(iM22.dot(self.lambda23)))
+
+        self.zeta21 = iM22.dot(self.lambda21 - self.M21.dot(self.lambda11))
+        self.zeta22 = iM22.dot(self.lambda22 - self.M21.dot(self.lambda12))
+        self.zeta23 = iM22.dot(self.lambda23 - self.M21.dot(self.lambda13))
+
+    def BodyForces(self):
+        """
+        This function updated the body-and-applied force vectors as the state variables change.
+        """
+        # re-make symbols for proper substitution
+        e = sym.Matrix(sym.symarray('e',12))
+        e_sub = [(e, ei) for e, ei in zip(e, self.state)]
+
+        # load the body and applied force vector and make substitutions for physical and material properties.
+        beta = self.beta.subs(e_sub)
+
+        # partition beta into lambda13 and lambda23
+        self.lambda13 = beta[0:6]
+        self.lambda23 = beta[6:12]
