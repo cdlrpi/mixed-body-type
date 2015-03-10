@@ -65,21 +65,15 @@ r2 = sym.Matrix(['r_2x','r_2y'])
 
 # Deformation coordinates
 u = sym.Matrix(['u_1x','u_1y','u_1z','u_2x','u_2y','u_2z'])
-# u1 = sym.Matrix(['u_1x','u_1y','u_1z'])
-# u2 = sym.Matrix(['u_2x','u_2y','u_2z'])
 udot = sym.Matrix(['udot_1x','udot_1y','udot_1z','udot_2x','udot_2y','udot_2z'])
-# u1dot = sym.Matrix(['udot_1x','udot_1y','udot_1z'])
-# u2dot = sym.Matrix(['udot_2x','udot_2y','udot_2z'])
 uddot = sym.Matrix(['uddot_1x','uddot_1y','uddot_1z','uddot_2x','uddot_2y','uddot_2z'])
-# u1ddot = sym.Matrix(['uddot_1x','uddot_1y','uddot_1z'])
-# u2ddot = sym.Matrix(['uddot_2x','uddot_2y','uddot_2z'])
 
-theta1 = sym.Matrix(sym.symarray('theta',4))
-theta2 = sym.Matrix(sym.symarray('phi',4))
-theta1_dot = sym.Matrix(sym.symarray('thetadot',4))
-theta2_dot = sym.Matrix(sym.symarray('phidot',4))
-theta1_ddot = sym.Matrix(sym.symarray('thetaddot',4))
-theta2_ddot = sym.Matrix(sym.symarray('phiddot',4))
+theta1 = sym.Matrix('theta_1','phi_1','psi_1')
+theta2 = sym.Matrix('theta_2','phi_2','psi_2')
+theta1_dot = sym.Matrix('thetadot_1','phidot_1','psidot_1')
+theta2_dot = sym.Matrix('thetadot_2','phidot_2','psidot_2')
+theta1_ddot = sym.Matrix('thetaddot_1','phiddot_1','psiddot_1')
+theta2_ddot = sym.Matrix('thetaddot_2','phiddot_2','psiddot_2')
 
 # locating the point in the cross section
 s1 = sym.Matrix([0, r1])
@@ -87,13 +81,9 @@ s2 = sym.Matrix([0, r2])
 s = sym.Matrix.vstack(s1,s2)
 
 # define state variables
-# e = sym.Matrix([u1, [theta1[3]], u2, [theta2[3]]])
 e = sym.Matrix([u[0:3,0], [theta1[3]], u[3:6,0], [theta2[3]]])
-# define state variables
 edot = sym.Matrix([udot[0:3,0], [theta1_dot[3]], udot[3:6,0], [theta2_dot[3]]])
-# edot = sym.Matrix([u1dot, [theta1_dot[3]], u2dot, [theta2_dot[3]]])
 eddot = sym.Matrix([uddot[0:3,0], [theta1_ddot[3]], uddot[3:6,0], [theta2_ddot[3]]])
-# eddot = sym.Matrix([u1ddot, [theta1_ddot[3]], u2ddot, [theta2_ddot[3]]])
 display(e)
 
 
@@ -124,17 +114,11 @@ Alpha_skew = sym.Matrix.vstack(sym.Matrix.hstack(alpha1_skew,sym.zeros(3)),     
 
 # Define velocity of element endpoints (nodes)
 v = udot + R*Omega_skew*s
-# v1 = u1dot + R1*omega1_skew*s1
-# v2 = u2dot + R2*omega2_skew*s2
-# v = sym.Matrix([v1,v2])
 print('v = ')
 display(v)
 
 # Define acceleration of element endpoints (nodes)
 a = uddot + R*Omega_skew*Omega_skew*s + R*Alpha_skew*s
-# a1 = u1ddot + R1*omega1_skew*omega1_skew*s1 + R1*alpha1_skew*s1
-# a2 = u2ddot + R2*omega2_skew*omega2_skew*s2 + R2*alpha2_skew*s2
-# a = sym.Matrix([a1,a2])
 print('\na = ')
 display(a)
 
