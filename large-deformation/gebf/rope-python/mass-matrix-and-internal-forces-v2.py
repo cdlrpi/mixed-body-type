@@ -11,9 +11,7 @@ import sympy as sym
 import pickle
 
 from sympy import cos, sin
-
 from IPython.display import display
-from __future__ import division
 from sympy.interactive import printing
 printing.init_printing(use_latex='mathjax')
 
