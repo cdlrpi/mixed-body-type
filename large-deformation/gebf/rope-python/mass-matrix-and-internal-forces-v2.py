@@ -147,12 +147,12 @@ display(H.T)
 # Define velocity of any point 
 Vp = H*v
 print('\nV = ')
-display(V)
+display(Vp)
 
 # Define velocity of any point 
 Ap = H*a
 # print('\nA = ')
-# display(Accel)
+# display(Ap)
 
 # Compute partial velocities of the nodes
 Vr = sym.Matrix([[sym.diff(Vp[j],edot[i]) 
@@ -162,17 +162,17 @@ print('\nVr = ')
 display(Vr.T)
 print(Vr.shape)
 
-# # Compute mass matrix
-# M = sym.Matrix([[sym.expand(sym.integrate(Vr[:,i].dot(Ap)*rho*A,(x,0,l))).coeff(eddot[j]) for i in range(len(eddot))]
-#                 for j in range(len(eddot))])
-# print('\nM = \n')
-# display(M)
-# pickle.dump( M, open( "mass-matrix.dump", "wb" ) )
+# Compute mass matrix
+M = sym.Matrix([[sym.expand(sym.integrate(Vr[:,i].dot(Ap)*rho*A,(x,0,l))).coeff(eddot[j]) for i in range(len(eddot))]
+                for j in range(len(eddot))])
+print('\nM = \n')
+display(M)
+pickle.dump( M, open( "mass-matrix.dump", "wb" ) )
 
 
 # In[ ]:
 
-sym.factor(M,A*rho*l)
+# sym.factor(M,A*rho*l)
 
 
 # ### Compute Internal forces 
