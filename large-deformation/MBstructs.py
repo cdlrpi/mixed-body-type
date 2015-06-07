@@ -5,8 +5,14 @@ import MultiBodyFuncts as MBF
 
 from numpy.linalg import inv
 
-#Body is the class that defines a single body in a multibody system
-class Rigid_Body:
+# Body is the class that defines a single body in a multibody system
+# Only really used for list management
+class Body():
+    pass
+    # basically used
+
+# Rigid_Body is the class that defines a rigid body
+class Rigid_Body():
     def __init__(self, I1, I2, I3, q, r, x, v):
         self.I=np.array(((I1,0,0),(0,I2,0),(0,0,I3)))
 
@@ -95,10 +101,16 @@ class Rigid_Body:
         self.Fa1[3:]=9.81*self.m*v-self.i31#-self.i5
         self.Fa2[3:]=9.81*self.m*v-self.i32
 
-#Joint is the class that defines a single joint in a multibody system		
+# Joint is the class that defines a single 
+# kinematic joint in a multibody system		
 class Joint:
     # Function to create the P and D matrices
     def __init__(self,v,x):
+        """
+        (simple joint)
+        x = (1 or 0)  - (free or locked joint)
+        v =  the vector defining the direction of allowed motion
+        """
         if x == 0:
             self.P = np.zeros((6,1))
             self.D = np.eye(6)
@@ -118,7 +130,8 @@ class Joint:
 class ANCF_Element():
     def __init__(self, area, modulus, inertia, density, length, state):
         """
-        Initializes all of the inertial propertias of the element and assigns values to physical and material properties 
+        Initializes all of the inertial propertias of the element and 
+        assigns values to physical and material properties 
         """
 
         # re-make symbols for proper substitution
@@ -167,7 +180,7 @@ class ANCF_Element():
         self.zeta22 = iM22.dot(self.lambda22 - self.M21.dot(self.lambda12))
         self.zeta23 = iM22.dot(self.lambda23 - self.M21.dot(self.lambda13))
 
-    def BodyForces(self):
+    def Update(self):
         """
         This function updated the body-and-applied force vectors as the state variables change.
         """
@@ -175,7 +188,8 @@ class ANCF_Element():
         e = sym.Matrix(sym.symarray('e',8))
         e_sub = [(e, ei) for e, ei in zip(e, self.state)]
 
-        # load the body and applied force vector and make substitutions for physical and material properties.
+        # load the body and applied force vector and make substitutions for 
+        # physical and material properties.
         beta = self.beta.subs(e_sub)
 
         # partition beta into lambda13 and lambda23
@@ -183,71 +197,74 @@ class ANCF_Element():
         self.lambda23 = beta[4:8]
 
 class GEBF_Element():
-    def __init__(self, area, modulus, inertia, density, length, state):
+    def __init__(self, modulus, inertia, radius, density, length, state):
         """
-        Initializes all of the inertial propertias of the element and assigns values to physical and material properties 
+        Initializes all of the inertial propertias of the element and assigns 
+        values to physical and material properties 
         """
-
-        # re-make symbols for proper substitution
-        q = sym.Matrix(sym.symarray('q',8))
         # symbolic system parameters 
-        E, I, A, rho, l, = sym.symbols('E I A rho l')
+        E, I, A, r, rho, l, = sym.symbols('E I A r rho l')
 
-        # Load symbolic mass matrix
-        M = pickle.load( open( "gebf-mass-matrix.dump", "rb" ) ).subs([(A, area), (l, length), (rho, density)])
-        (n,m) = M.shape
+        # Load symbolic mass matrix and substitute material properties
+        M = pickle.load( open( "gebf-mass-matrix.dump", "rb" ) ).subs([ \
+            (E, modulus), (I, inertia), (r, radius), (rho, density), (l, length)])
         
-        # load the body and applied force vector (this still has sympolic 'e' values)
-        self.beta = pickle.load( open( "gebf-force-vector.dump", "rb" ) ).subs([(E, modulus), (A, area), \
-                                                                           (I, inertia), (rho, density), (l, length)])# fully numberic (initial) values for body and applied forces
+        # load the body and applied force vector and substitute material properties
+        self.beta = pickle.load( open( "gebf-beta.dump", "rb" ) ).subs([ \
+            (E, modulus), (I, inertia), (r, radius), (rho, density), (l, length)])
+        
+        # Substitute State Variables
+        # re-make symbols for proper substitution and create the paird list
+        q = sym.Matrix(sym.symarray('q',2*8))
         q_sub = [(q, qi) for q, qi in zip(q, state)]
+       
+        # Substitute state variables
         beta = self.beta.subs(q_sub)
         M = M.subs(q_sub)
 
-
+        # Form the binary-DCA algebraic quantities
         # Partition mass matrix
-        
         self.M11 = np.array(M[0:4,0:4])
         self.M12 = np.array(M[0:4,4:8])
         self.M21 = np.array(M[4:8,0:4])
         self.M22 = np.array(M[4:8,4:8])
 
-        # For now 
-        self.lambda11 = np.eye(4)
-        self.lambda12 = np.zeros((4,4))
-        self.lambda22 = np.eye(4)
-        self.lambda21 = np.zeros((4,4))
-        
+        # For now use these definitions to cast Fic (constraint forces between GEBF elements) 
+        # into generalized constraint forces
+        self.gamma11 = np.eye(4)
+        self.gamma12 = np.zeros((4,4))
+        self.gamma22 = np.eye(4)
+        self.gamma21 = np.zeros((4,4))
         
         # partition beta into lambda13 and lambda23
-        self.lambda13 = np.array(beta[0:4])
-        self.lambda23 = np.array(beta[4:8])
+        self.gamma13 = np.array(beta[0:4])
+        self.gamma23 = np.array(beta[4:8])
 
 
         # Commonly inverted quantities
-        Gamma = inv(self.M11 - self.M12*inv(self.M22)*self.M21)
+        iM11 = inv(self.M11)
         iM22 = inv(self.M22)
+        Gamma1 = inv(self.M11 - self.M12*iM22*self.M21)
+        Gamma2 = inv(self.M22 - self.M21*iM11*self.M12)
 
         # Compute all terms of the two handle equations
-        self.zeta11 = Gamma.dot(self.lambda11 - self.M12.dot(iM22.dot(self.lambda21)))
-        self.zeta12 = Gamma.dot(self.lambda12 - self.M12.dot(iM22.dot(self.lambda22)))
-        self.zeta13 = Gamma.dot(self.lambda13 - self.M12.dot(iM22.dot(self.lambda23)))
+        self.zeta11 = Gamma1.dot(self.gamma11 - self.M12.dot(iM22.dot(self.gamma21)))
+        self.zeta12 = Gamma1.dot(self.gamma12 - self.M12.dot(iM22.dot(self.gamma22)))
+        self.zeta13 = Gamma1.dot(self.gamma13 - self.M12.dot(iM22.dot(self.gamma23)))
 
-        self.zeta21 = iM22.dot(self.lambda21 - self.M21.dot(self.lambda11))
-        self.zeta22 = iM22.dot(self.lambda22 - self.M21.dot(self.lambda12))
-        self.zeta23 = iM22.dot(self.lambda23 - self.M21.dot(self.lambda13))
+        self.zeta21 = Gamma2.dot(self.gamma21 - self.M21.dot(iM11.dot(self.gamma11)))
+        self.zeta22 = Gamma2.dot(self.gamma22 - self.M21.dot(iM11.dot(self.gamma12)))
+        self.zeta23 = Gamma2.dot(self.gamma23 - self.M21.dot(iM11.dot(self.gamma13)))
 
-    def BodyForces(self):
-        """
-        This function updated the body-and-applied force vectors as the state variables change.
-        """
-        # re-make symbols for proper substitution
-        q = sym.Matrix(sym.symarray('q',8))
-        q_sub = [(q, qi) for q, qi in zip(q, self.state)]
+        # Make "full-size" to interface with "standard" DCA for rigid bodies
+        self.zeta11 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.zeta11))))
+        self.zeta12 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.zeta12))))
+        self.zeta21 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.zeta21))))
+        self.zeta22 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.zeta22))))
 
-        # load the body and applied force vector and make substitutions for physical and material properties.
-        beta = self.beta.subs(q_sub)
-
-        # partition beta into lambda13 and lambda23
-        self.lambda13 = beta[0:4]
-        self.lambda23 = beta[4:8]
+        self.zeta13 = np.vstack((np.zeros((2,1)),self.zeta13.reshape(4,1)))
+        self.zeta23 = np.vstack((np.zeros((2,1)),self.zeta23.reshape(4,1)))
+    # def Update(self):
+    #   """
+    #   For GEBF everything needs to be updated so just use __init__ 
+    #   """

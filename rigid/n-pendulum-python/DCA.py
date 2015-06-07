@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import MBstructs as MB
 import MultiBodyFuncts as MBF
 
-def openR(n,i,bodies,joints,BC1,BC2,xinits): 
+def openR(n,i,bodies,joints,BC1,BC2): 
     """
     This function uses the DCA to form and solve the equations of motion.
     """
@@ -73,18 +73,22 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
         #Find the new joints corresponding to the new bodies
         newjs=[]
         for k in range (0,len(newbds)):
-            newjs.append(MB.Joint())
-        
-        
-        #loop that brings along the P and D matrices from the previous joints
-        for j in range(0,len(newjs)):
+            # newjs.append(MB.Joint())
             if j==len(newjs)-1 and odd ==1:
-                newjs[j].D=joints[len(joints)-1].D
-                newjs[j].P=joints[len(joints)-1].P
-               
+                newjs.append(MB.Joint(joints[len(joints)-1].P,np.max(joints[len(joints)-1].P)))
+        
             else:
-                newjs[j].D=joints[2*j].D
-                newjs[j].P=joints[2*j].P
+                newjs.append(MB.Joint(joints[2*k].P,np.max(joints[2*k].P)))
+        
+        # #loop that brings along the P and D matrices from the previous joints
+        # for j in range(0,len(newjs)):
+        #     if j==len(newjs)-1 and odd ==1:
+        #         newjs[j].D=joints[len(joints)-1].D
+        #         newjs[j].P=joints[len(joints)-1].P
+        #        
+        #     else:
+        #         newjs[j].D=joints[2*j].D
+        #         newjs[j].P=joints[2*j].P
                
                 
                 
@@ -97,7 +101,7 @@ def openR(n,i,bodies,joints,BC1,BC2,xinits):
         #At this point this function will repeat itself in a loop until there is
         #one body left
 
-        sol=openR(n,i+1,newbds,newjs,BC1,BC2,xinits)
+        sol=openR(n,i+1,newbds,newjs,BC1,BC2)
        
         
         #Forces and Accelerations at the new joints are found,

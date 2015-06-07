@@ -99,10 +99,9 @@ class Body:
 		self.Fa2[3:]=9.81*self.m*v-self.i32
 
 #Joint is the class that defines a single joint in a multibody system		
-class Joint:
-
+class Joint():
 	#Function to create the P and D matrices+++
-	def PDmatrix(self,v,x):
+	def __init__(self,v,x):
 		self.P=np.zeros((6,x))
 		self.D=np.zeros((6,6-x))
 		j=0
