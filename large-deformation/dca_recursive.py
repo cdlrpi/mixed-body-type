@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import MBstructs as MB
 import MultiBodyFuncts as MBF
 
-def dca_recursive(n,i,bodies,joints,BC1,BC2,xinits): 
+def solve2D(n,i,bodies,joints,BC1,BC2): 
     """
     This function uses the DCA to form and solve the equations of motion.
     """
@@ -49,14 +49,15 @@ def dca_recursive(n,i,bodies,joints,BC1,BC2,xinits):
                 newbds[j].z22[:,:]=bodies[2*j].z22[:,:]
                 newbds[j].z13[:]=bodies[2*j].z13[:]
                 newbds[j].z23[:]=bodies[2*j].z23[:]
-                newbds[j].m=bodies[2*j].m
+                # newbds[j].m=bodies[2*j].m
                 
             #Otherwise, calculate the new zetas for the newly assembled bodies
             #according to the formulae
             else:
-                newbds[j].m=bodies[2*j].m+bodies[2*j+1].m         
+                # newbds[j].m=bodies[2*j].m+bodies[2*j+1].m         
                 #X, Q, and Y  are  intermediate quantities
-                newbds[j].X=np.dot(np.transpose(joints[2*j+1].D),np.dot(bodies[2*j+1].z11+bodies[2*j].z22,joints[2*j+1].D))
+                newbds[j].X=np.dot(np.transpose(joints[2*j+1].D),\
+                        np.dot(bodies[2*j+1].z11+bodies[2*j].z22,joints[2*j+1].D))
                 newbds[j].Xinv=np.linalg.inv(newbds[j].X)
                 newbds[j].W=np.dot(joints[2*j+1].D,np.dot(newbds[j].Xinv,np.transpose(joints[2*j+1].D)))
                 newbds[j].Y=np.dot(newbds[j].W,bodies[2*j].z23-bodies[2*j+1].z13)#ommitted pdot*u
@@ -101,7 +102,7 @@ def dca_recursive(n,i,bodies,joints,BC1,BC2,xinits):
         #At this point this function will repeat itself in a loop until there is
         #one body left
 
-        sol=openR(n,i+1,newbds,newjs,BC1,BC2,xinits)
+        sol=openR(n,i+1,newbds,newjs,BC1,BC2)
        
         
         #Forces and Accelerations at the new joints are found,
@@ -128,8 +129,9 @@ def dca_recursive(n,i,bodies,joints,BC1,BC2,xinits):
                 k=len(newsol)-2
                 
                 #The force in the joint between two assembled bodies
-                #F=np.dot(np.linalg.inv(bodies[2*j].z12),newsol[k]-bodies[2*j].z13-np.dot(bodies[2*j].z11,newsol[k+1]))
-                F=-1*(np.dot(joints[j+1].D,np.dot(newbds[j].Xinv,np.dot(np.transpose(joints[j+1].D),(np.dot(bodies[2*j].z21,newsol[k+1])-np.dot(bodies[2*j+1].z12,sol[4*j+3])+bodies[2*j].z23-bodies[2*j+1].z13)))))
+                F=-1*(np.dot(joints[j+1].D,np.dot(newbds[j].Xinv,np.dot(np.transpose(joints[j+1].D),\
+                        (np.dot(bodies[2*j].z21,newsol[k+1])-np.dot(bodies[2*j+1].z12,\
+                        sol[4*j+3])+bodies[2*j].z23-bodies[2*j+1].z13)))))
                 
                 #A2 is the acceleration of handle 2 of body k
                 A2=np.dot(bodies[2*j].z21,newsol[k+1])+np.dot(bodies[2*j].z22,F)+bodies[2*j].z23

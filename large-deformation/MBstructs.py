@@ -1,3 +1,12 @@
+# Jeremy Lafin 6/8/2015
+# Modified version of MBStructs.py by Mike Hans
+# In this version 
+#   - ANCF elements and 
+#   - GEBF elements have been added
+#   - Ridid_Bodies have been modified to use __init__()
+#   ** Everything is 2D planar i.e., Aij = [theta_ddot,a1,a2] **
+#   ** This is because GEBF generates Mii = 0  for unused dofs **
+
 import numpy as np
 import sympy as sym
 import pickle
@@ -7,77 +16,61 @@ from numpy.linalg import inv
 
 # Body is the class that defines a single body in a multibody system
 # Only really used for list management
-class Body():
-    pass
-    # basically used
+class Body(self,body_type,*arg):
+    if body_type == 'rigid':
+        Rigid_Body(arg)
+    elif body_type == 'GEBF':
+        GEBF_Element(arg)
+    #  ANCF Elements not used in this version
+
 
 # Rigid_Body is the class that defines a rigid body
 class Rigid_Body():
-    def __init__(self, I1, I2, I3, q, r, x, v):
-        self.I=np.array(((I1,0,0),(0,I2,0),(0,0,I3)))
+    def __init__(self, (m, l, I)):
 
-        # Make the skew matricies needed 
-        self.q = q
-        self.r = r
-        self.q_skew = MBF.skew(q)
-        self.r_skew = MBF.skew(r)
+        self.r10 = np.dot(np.array([l/2,0,0]),self.C0)
+        self.r01 = -self.r10
+        self.r12 = np.dot(np.array([l,0,0]),self.C0)
+        self.r21 = -self.r12
+        self.r20 = np.dot(np.array([-l/2,0,0]),self.C0)
+        self.r02 = -self.r20
 
-        # # This function is not used in DCA
-        # self.wn = np.dot(x, self.Pw)
-        # self.W0 = np.transpose(MBF.skew(self.wn))
-
-        #This function is not used in DCA
-        self.C0dot=np.dot(self.W0, self.C0)
-
-        #Function to transform the Inertia Matrix with the 
-        #direction cosine matrices
-        self.I0=np.dot(np.transpose(self.C0),np.dot(self.I,self.C0))
-        self.I0T=np.transpose(self.I0)
-
-        #Function to create the Shifter Matrices
-        # self.S01=np.zeros((6,6))
-        # self.S10=np.zeros((6,6))
-        # self.S20=np.zeros((6,6))
-        # self.S02=np.zeros((6,6))
-
-        # self.S02[:3,:3]=np.identity(3)
-        # self.S02[3:,3:]=np.identity(3)
-        # self.S10[:3,:3]=np.identity(3)
-        # self.S10[3:,3:]=np.identity(3)
-        # self.S20[:3,:3]=np.identity(3)
-        # self.S20[3:,3:]=np.identity(3)
-        # self.S01[:3,:3]=np.identity(3)
-        # self.S01[3:,3:]=np.identity(3)
-                        
-        self.S02 = MBF.skew(self.r02)
-        self.S10 = MBF.skew(self.r10)
-        self.S01 = MBF.skew(self.r01)	
-        self.S20 = MBF.skew(self.r20)
+        # construct shifter matricies
+        self.S10 = np.hstack((np.array([[1],[0],[0]]),np.vstack(([-r[1], r[0]],np.eye(2)))))
+        self.S01 = np.hstack((np.array([[1],[0],[0]]),np.vstack(([r[1], -r[0]],np.eye(2)))))
+        self.S02 = np.hstack((np.array([[1],[0],[0]]),np.vstack(([-r[1], r[0]],np.eye(2)))))
+        self.S20 = np.hstack((np.array([[1],[0],[0]]),np.vstack(([r[1], -r[0]],np.eye(2)))))
 
         # Create the Mass and inverse Mass Matrices	
-        self.M=np.zeros((6,6))
-        self.M[:3,:3]=self.I0
-        self.M[3:,3:]=np.array(((self.m,0,0),(0,self.m,0),(0,0,self.m)))		
+        self.M = np.hstack(((np.array([[I],[0],[0]]),np.vstack(np.zeros((2,1)),(np.eye(2)))))
         self.Minv=np.linalg.inv(self.M)
+        
+        # construct the inverse inertial matricies for the two handle equations
+        self.z11=np.dot(self.S10,np.dot(self.Minv,self.S01))
+        self.z12=np.dot(self.S10,np.dot(self.Minv,self.S02))
+        self.z21=np.dot(self.S20,np.dot(self.Minv,self.S01))
+        self.z22=np.dot(self.S20,np.dot(self.Minv,self.S02))
+
+        # Determine Initial Body Forces and State Dependent Terms 
+        self.i1= np.cross(self.w,self.r10)
+        self.i12=np.cross(self.w,self.r20)
+        self.i2=np.cross(self.w,self.i1)
+        self.i31=self.m*self.i2
+        self.i32=self.m*np.cross(self.w,self.i12)
+        
+        #Total force with gravity included
+        self.Fa1[3:]=9.81*self.m*v-self.i31#-self.i5
+        self.Fa2[3:]=9.81*self.m*v-self.i32
+
+        self.z13=np.dot(self.S10,np.dot(self.Minv,self.Fa1))
+        self.z23=np.dot(self.S20,np.dot(self.Minv,self.Fa2))
 
     #Function that defines position vectors between any of the
     #Three points on the body (two handles and center of mass)
     def rs(self,r,v):
-        self.r10= np.dot(r*v,self.C0)
-        self.r01=-1*self.r10
-        self.r12= np.dot(self.l*v,self.C0)
-        self.r21=-1*self.r12
-        self.r20= np.dot((r)*v*-1,self.C0) 
-        self.r02=-1*self.r20
 
     #Function that finds the initial zeta values in each timestep
     def zeta(self):
-        self.z11=np.dot(self.S10,np.dot(self.Minv,self.S01))
-        self.z12=np.dot(self.S10,np.dot(self.Minv,self.S02))
-        self.z13=np.dot(np.dot(self.S10,self.Minv),self.Fa1)
-        self.z21=np.dot(self.S20,np.dot(self.Minv,self.S01))
-        self.z22=np.dot(self.S20,np.dot(self.Minv,self.S02))
-        self.z23=np.dot(self.S20,np.dot(self.Minv,self.Fa2))
 
             
     #Function to apply the state dependant forces
@@ -85,21 +78,6 @@ class Rigid_Body():
     #not sure if this is correct.
     def Forces(self,v):
 
-        self.Fa1=np.zeros((6))
-        self.Fa2=np.zeros((6))
-
-        #Force from centripedal motion around the
-        #body's first joint
-        self.i1= np.cross(self.w,self.r10)
-        self.i12=np.cross(self.w,self.r20)
-        self.i2=np.cross(self.w,self.i1)
-        self.i31=self.m*self.i2
-        self.i32=self.m*np.cross(self.w,self.i12)
-        
-        
-        #Total force with gravity included
-        self.Fa1[3:]=9.81*self.m*v-self.i31#-self.i5
-        self.Fa2[3:]=9.81*self.m*v-self.i32
 
 # Joint is the class that defines a single 
 # kinematic joint in a multibody system		
@@ -203,7 +181,7 @@ class GEBF_Element():
         values to physical and material properties 
         """
         # symbolic system parameters 
-        E, I, A, r, rho, l, = sym.symbols('E I A r rho l')
+        E, I, r, rho, l, = sym.symbols('E I r rho l')
 
         # Load symbolic mass matrix and substitute material properties
         M = pickle.load( open( "gebf-mass-matrix.dump", "rb" ) ).subs([ \
@@ -248,22 +226,22 @@ class GEBF_Element():
         Gamma2 = inv(self.M22 - self.M21*iM11*self.M12)
 
         # Compute all terms of the two handle equations
-        self.zeta11 = Gamma1.dot(self.gamma11 - self.M12.dot(iM22.dot(self.gamma21)))
-        self.zeta12 = Gamma1.dot(self.gamma12 - self.M12.dot(iM22.dot(self.gamma22)))
-        self.zeta13 = Gamma1.dot(self.gamma13 - self.M12.dot(iM22.dot(self.gamma23)))
+        self.z11 = Gamma1.dot(self.gamma11 - self.M12.dot(iM22.dot(self.gamma21)))
+        self.z12 = Gamma1.dot(self.gamma12 - self.M12.dot(iM22.dot(self.gamma22)))
+        self.z13 = Gamma1.dot(self.gamma13 - self.M12.dot(iM22.dot(self.gamma23)))
 
-        self.zeta21 = Gamma2.dot(self.gamma21 - self.M21.dot(iM11.dot(self.gamma11)))
-        self.zeta22 = Gamma2.dot(self.gamma22 - self.M21.dot(iM11.dot(self.gamma12)))
-        self.zeta23 = Gamma2.dot(self.gamma23 - self.M21.dot(iM11.dot(self.gamma13)))
+        self.z21 = Gamma2.dot(self.gamma21 - self.M21.dot(iM11.dot(self.gamma11)))
+        self.z22 = Gamma2.dot(self.gamma22 - self.M21.dot(iM11.dot(self.gamma12)))
+        self.z23 = Gamma2.dot(self.gamma23 - self.M21.dot(iM11.dot(self.gamma13)))
 
-        # Make "full-size" to interface with "standard" DCA for rigid bodies
-        self.zeta11 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.zeta11))))
-        self.zeta12 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.zeta12))))
-        self.zeta21 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.zeta21))))
-        self.zeta22 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.zeta22))))
-
-        self.zeta13 = np.vstack((np.zeros((2,1)),self.zeta13.reshape(4,1)))
-        self.zeta23 = np.vstack((np.zeros((2,1)),self.zeta23.reshape(4,1)))
+        # # Make "full-size" to interface with "recursive" DCA for RigidBody() class
+        # self.z11 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.z11))))
+        # self.z12 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.z12))))
+        # self.z21 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.z21))))
+        # self.z22 = np.hstack((np.zeros((6,2)),np.vstack((np.zeros((2,4)),self.z22))))
+        # 
+        # self.z13 = np.vstack((np.zeros((2,1)),self.z13.reshape(4,1)))
+        # self.z23 = np.vstack((np.zeros((2,1)),self.z23.reshape(4,1)))
     # def Update(self):
     #   """
     #   For GEBF everything needs to be updated so just use __init__ 
