@@ -14,23 +14,13 @@ import MultiBodyFuncts as MBF
 
 from numpy.linalg import inv
 
-# Body is the class that defines a single body in a multibody system
-# Only really used for list management
-class Body(self,body_type,*arg):
-    if body_type == 'rigid':
-        Rigid_Body(arg)
-    elif body_type == 'GEBF':
-        GEBF_Element(arg)
-    #  ANCF Elements not used in this version
-
-
 # Rigid_Body is the class that defines a rigid body
 class Rigid_Body():
     def __init__(self, m, l, I):
 
         # Locate Handles from C.M. in Body-Fixed Framen and rotate to 'N'
-        r01 = np.dot(np.array([[-l/2],[0]]),self.C0)
-        r02 = np.dot(np.array([[ l/2],[0]]),self.C0)
+        r01 = np.dot(np.array([[-self.l/2],[0]]),self.C0)
+        r02 = np.dot(np.array([[ self.l/2],[0]]),self.C0)
         
         # Applied and body forces
         Fg = np.array([[0],[0],[m*9.81]])
@@ -44,7 +34,7 @@ class Rigid_Body():
         S20 = np.transpose(S02)
 
         # Create the Mass and inverse Mass Matrices	
-        M = np.hstack((np.array([[I],[0],[0]]),np.vstack((np.zeros((2,1)),m*np.eye(2)))))
+        M = np.hstack(((np.array([[I],[0],[0]]),np.vstack(np.zeros((2,1)),(m*np.eye(2))))))
         Minv = np.linalg.inv(M)
         
         # Construct the inverse inertial matricies for the two handle equations
@@ -58,29 +48,22 @@ class Rigid_Body():
 
 # Joint is the class that defines a single 
 # kinematic joint in a multibody system		
-class Joint:
-    # Function to create the P and D matrices
-    def __init__(self,v,x):
-        """
-        (simple joint)
-        x = (1 or 0)  - (free or locked joint)
-        v =  the vector defining the direction of allowed motion
-        """
-        if x == 0:
-            self.P = np.zeros((6,1))
-            self.D = np.eye(6)
-        else:
-            self.P=np.zeros((6,x))
-            self.D=np.zeros((6,6-x))
-            j=0
-            k=0
-            for i in range(0,6):
-                if v[i]==1:
-                    self.P[i,j]=1
-                    j=j+1
-                else:
-                    self.D[i,k] = 1
-                    k=k+1
+class Joint():
+    def __init__(self,jointType):
+        if jointType == 'revolute2D':
+            revolute2D.__init__(self)
+        elif jointType == 'gebf':
+            gebf.__init__(self)
+
+class revolute2D(Joint):
+    def __init__(self):
+        self.P = np.array([[1], [0], [0]])
+        self.D = np.array([[0, 0], [1, 0], [0, 1]])
+
+class gebf(Joint):
+    def __init__(self):
+        self.P = np.array([[0], [0], [0]])
+        self.D = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
 class GEBF_Element():
     def __init__(self, modulus, inertia, radius, density, length, state):
@@ -110,10 +93,10 @@ class GEBF_Element():
 
         # Form the binary-DCA algebraic quantities
         # Partition mass matrix
-        self.M11 = np.array(M[0:4,0:4])
-        self.M12 = np.array(M[0:4,4:8])
-        self.M21 = np.array(M[4:8,0:4])
-        self.M22 = np.array(M[4:8,4:8])
+        M11 = np.array(M[0:4,0:4])
+        M12 = np.array(M[0:4,4:8])
+        M21 = np.array(M[4:8,0:4])
+        M22 = np.array(M[4:8,4:8])
 
         # For now use these definitions to cast Fic (constraint forces between GEBF elements) 
         # into generalized constraint forces
