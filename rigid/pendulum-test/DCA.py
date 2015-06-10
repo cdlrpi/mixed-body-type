@@ -24,11 +24,11 @@ def openR(n,i,bodies,joints,BC1,BC2):
         newbds=[]
         if (len(bodies)%2)==0:
             for k in range (0,math.trunc(len(bodies)/2)):
-                newbds.append(MB.Body())
+                newbds.append(MB.Rigid_Body2D())
         else:
             odd=1
             for k in range (0,math.trunc(len(bodies)/2)+1):
-                newbds.append(MB.Body())
+                newbds.append(MB.Rigid_Body2D())
             
         #Loop through all of the new bodies, assembling the correct two
         #"old" bodies to create the new.
@@ -66,13 +66,15 @@ def openR(n,i,bodies,joints,BC1,BC2):
             
         
         #Find the new joints corresponding to the new bodies
-        newjs=[]
-        for k in range (0,len(newbds)):
-            # newjs.append(MB.Joint())
-            if j==len(newjs)-1 and odd ==1:
-                newjs.append(MB.Joint(joints[len(joints)-1].P,np.max(joints[len(joints)-1].P)))
-            else:
-                newjs.append(MB.Joint(joints[2*k].P,np.max(joints[2*k].P)))
+        # newjs=[]
+        # for k in range (0,len(newbds)):
+        #     # newjs.append(MB.Joint())
+        #     if j==len(newjs)-1 and odd ==1:
+        #         newjs.append(MB.Joint(joints[len(joints)-1].P,np.max(joints[len(joints)-1].P)))
+        #     else:
+        #         newjs.append(MB.Joint(joints[2*k].P,np.max(joints[2*k].P)))
+        # I am not sure about the above code, I think this does the same thing
+        newjs = [MB.Joint('revolute2D') for k in range (len(newbds))]
         
         #This is the recursive call.  This will return a list of the form:
         #[A11,F1c1,A12,F1c2,A21,F2c1,...,An2,Fnc2] where the Axy's and Fxcy's 
@@ -181,11 +183,26 @@ def openR(n,i,bodies,joints,BC1,BC2):
             invQ = 1/Q
         else:
             invQ = np.linalg.inv(Q)
-        udot = invQ*np.dot(joints[0].P.T,np.dot(np.linalg.inv(bodies[0].z11),(bodies[0].z13)))
-        A1 = (joints[0].P*udot).reshape((6,))
+        udot = np.dot(invQ,np.dot(joints[0].P.T,np.dot(np.linalg.inv(bodies[0].z11),bodies[0].z13)))
+        A1 = np.dot(joints[0].P,udot)
         Fc1 = np.dot(np.linalg.inv(bodies[0].z11),A1 - bodies[0].z13)
         Fc2 = np.zeros_like(Fc1)
         A2 = np.dot(bodies[0].z21,Fc1) + np.dot(bodies[0].z22,Fc2) + bodies[0].z23
-
+        
+        # A1 = A1.reshape((A1.size,))
+        # A2 = A2.reshape((A2.size,))
+        # Fc1 = Fc1.reshape((Fc1.size,))
+        # Fc2 = Fc2.reshape((Fc2.size,))
+      
+        # print(A1)
+        # print(A2)
+        # print(A1.shape)
+        # print(A2.shape)
+        # print(Fc1.shape)
+        # print(Fc2.shape)
+        # print(A1.size)
+        # print(A2.size)
+        # print(Fc1.size)
+        # print(Fc2.size)
         sol=[A1,Fc1,A2,Fc2]
         return sol  

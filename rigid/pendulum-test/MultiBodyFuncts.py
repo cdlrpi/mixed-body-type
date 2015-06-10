@@ -6,8 +6,9 @@
 import numpy as np
 #This script will hold some functions that will be used in other scripts
 def DCM(theta):
-    C = np.array([[np.cos(theta), -np.sin(theta)],\
-                  [np.cos(theta), -np.sin(theta)]])
+    C = np.array([[ np.cos(theta), np.sin(theta)],\
+                  [-np.sin(theta), np.cos(theta)]])
+    return C
 
 def vb2pts(va,awb,rab):
 	return (va+np.cross(awb,rab))
@@ -78,5 +79,19 @@ def PendEnergy(Y,bodies):
 	energy[:,0]=KE
 	energy[:,1]=PE
 	energy[:,2]=TE
+        # n = state.shape[1]/2
+        # q = state[:n]
+        # qdot = state[n:]
+        # for i in range(state.shape[0]):
+        #     for body in bodies:
+        #         r = np.dot(body.CBN,np.array([body.l/2,0]))
+        #         if bodies.index(body) == 1:
+        #             h = body.l/2 + r[1]
+        #             v = 2*body.omega*np.array([-r[1], r[2]])
+        #             vcm = body.omega*np.array([-r[1], r[2]])
+        #         else:
+        #             h = np.sum() + body.l/2 + r[1]
+        #             v = 2*body.omega*np.array([-r[1], r[2]])
+        #             vcm = body.omega*np.array([-r[1], r[2]])
 	return energy
 				

@@ -3,7 +3,6 @@
 # In this version 
 #   - ANCF elements and 
 #   - GEBF elements have been added
-#   - Ridid_Bodies have been modified to use __init__()
 #   ** Everything is 2D planar i.e., Aij = [theta_ddot,a1,a2] **
 #   ** This is because GEBF generates Mii = 0  for unused dofs **
 
@@ -15,36 +14,40 @@ import MultiBodyFuncts as MBF
 from numpy.linalg import inv
 
 # Rigid_Body is the class that defines a rigid body
-class Rigid_Body():
-    def __init__(self, m, l, I):
+class Rigid_Body2D:
 
+    def initialize(self, m, l, I):
+        self.m = m
+        self.l = l
+        self.I = I
+
+    def intProps(self):
         # Locate Handles from C.M. in Body-Fixed Framen and rotate to 'N'
-        r01 = np.dot(np.array([[-self.l/2],[0]]),self.C0)
-        r02 = np.dot(np.array([[ self.l/2],[0]]),self.C0)
+        self.r01 = np.dot(self.CBN,np.array([0,-self.l/2]))
+        self.r02 = np.dot(self.CBN,np.array([0, self.l/2]))
         
         # Applied and body forces
-        Fg = np.array([[0],[0],[m*9.81]])
-        Fa1 = Fg - self.omega**2*np.array([[0],[r01]])
-        Fa2 = Fg - self.omega**2*np.array([[0],[r02]])
+        # Only applied or body force is gravity
+        Fg = np.array([0,0,self.m*-9.81])
+        Fa1 = Fg 
+        Fa2 = Fg 
 
-        # construct shifter matricies
-        S01 = np.eye(3) + np.array([[0, -r01[1], r01[0]],[np.zeros((2,3))]])
-        S10 = np.transpose(S01)
-        S02 = np.eye(3) + np.array([[0, -r02[1], r02[0]],[np.zeros((2,3))]])
-        S20 = np.transpose(S02)
+        # construct shifter matricies for the **PLANAR** problem
+        self.S01 = np.eye(3) + np.vstack((np.array([[0, -self.r01[1], self.r01[0]]]),np.zeros((2,3))))
+        self.S02 = np.eye(3) + np.vstack((np.array([[0, -self.r02[1], self.r02[0]]]),np.zeros((2,3))))
 
         # Create the Mass and inverse Mass Matrices	
-        M = np.hstack(((np.array([[I],[0],[0]]),np.vstack(np.zeros((2,1)),(m*np.eye(2))))))
-        Minv = np.linalg.inv(M)
+        self.M = np.vstack(((np.array([self.I,0,0]),np.hstack((np.zeros((2,1)),(self.m*np.eye(2)))))))
+        self.Minv = np.linalg.inv(self.M)
         
         # Construct the inverse inertial matricies for the two handle equations
-        self.z11 = np.dot(S10,np.dot(self.Minv,S01))
-        self.z12 = np.dot(S10,np.dot(self.Minv,S02))
-        self.z21 = np.dot(S20,np.dot(self.Minv,S01))
-        self.z22 = np.dot(S20,np.dot(self.Minv,S02))
+        self.z11 = np.dot(self.S01.T,np.dot(self.Minv,self.S01))
+        self.z12 = np.dot(self.S01.T,np.dot(self.Minv,self.S02))
+        self.z21 = np.dot(self.S02.T,np.dot(self.Minv,self.S01))
+        self.z22 = np.dot(self.S02.T,np.dot(self.Minv,self.S02))
 
-        self.z13 = np.dot(S10,np.dot(self.Minv,Fa1))  
-        self.z23 = np.dot(S20,np.dot(self.Minv,Fa2))
+        self.z13 = np.dot(self.S01.T,np.dot(self.Minv,Fa1)) - self.omega**2*np.hstack((0,self.r01)).reshape(Fa1.shape) 
+        self.z23 = np.dot(self.S02.T,np.dot(self.Minv,Fa2)) - self.omega**2*np.hstack((0,self.r02)).reshape(Fa2.shape) 
 
 # Joint is the class that defines a single 
 # kinematic joint in a multibody system		
@@ -65,7 +68,7 @@ class gebf(Joint):
         self.P = np.array([[0], [0], [0]])
         self.D = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
-class GEBF_Element():
+class GEBF_Element2D():
     def __init__(self, modulus, inertia, radius, density, length, state):
         """
         Initializes all of the inertial propertias of the element and assigns 
@@ -125,7 +128,7 @@ class GEBF_Element():
         self.z22 = Gamma2.dot(self.gamma22 - self.M21.dot(iM11.dot(self.gamma12)))
         self.z23 = Gamma2.dot(self.gamma23 - self.M21.dot(iM11.dot(self.gamma13)))
 
-class ANCF_Element():
+class ANCF_Element2D():
     def __init__(self, area, modulus, inertia, density, length, state):
         """
         Initializes all of the inertial propertias of the element and 
