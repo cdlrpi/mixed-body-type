@@ -92,7 +92,7 @@ class GEBF_Element2D(Body):
         self.rho = args[4]
         self.l   = args[5]
 
-    def intProps(self):
+    def intProps(self,u):
         # symbolic system parameters 
         E, A, I, r, rho, l, = sym.symbols('E A, I r rho l')
 
@@ -106,8 +106,9 @@ class GEBF_Element2D(Body):
         
         # Substitute State Variables
         # re-make symbols for proper substitution and create the paird list
-        q = sym.Matrix(sym.symarray('q',2*6))
-        q_sub = [(q, qi) for q, qi in zip(q, state)]
+        q = sym.Matrix(sym.symarray('q',2*3))
+        qe = [body.theta1] + u[:3] + [body.theta2] + u[3:]        
+        q_sub = [(q, qi) for q, qi in zip(q, qe)]
        
         # Substitute state variables
         self.beta = self.beta.subs(q_sub)
