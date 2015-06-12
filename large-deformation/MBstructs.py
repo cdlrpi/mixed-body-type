@@ -35,17 +35,18 @@ class gebf(Joint):
         self.D = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
 class Body:
-    def initialize(self, *args):
-        if args[0] == 'rigid':
-            Rigid_Body2D.initialize(self, args[1:])
-        elif args[0] == 'gebf':
-            GEBF_Element2D.initialize(self, args[1:])
+
+    def initialize(self, body_type, *args):
+        if body_type == 'rigid':
+            Rigid_Body2D.initialize(self, args)
+        elif body_type == 'gebf':
+            GEBF_Element2D.initialize(self, args)
 
     def intProps(self, body_type, *args):
         if body_type == 'rigid':
-            Rigid_Body2D.intProps(self, args[1:])
+            Rigid_Body2D.intProps(self, args)
         elif body_type == 'gebf':
-            GEBF_Element2D.intProps(self, args[1:])
+            GEBF_Element2D.intProps(self, args)
 
 class Rigid_Body2D(Body):
     
@@ -55,6 +56,7 @@ class Rigid_Body2D(Body):
         self.I = args[2]
 
     def intProps(self):
+
         # Locate Handles from C.M. in Body-Fixed Framen and rotate to 'N'
         self.r01 = np.dot(self.CBN,np.array([0,-self.l/2]))
         self.r02 = np.dot(self.CBN,np.array([0, self.l/2]))
@@ -92,7 +94,10 @@ class GEBF_Element2D(Body):
         self.rho = args[4]
         self.l   = args[5]
 
-    def intProps(self,u):
+    def intProps(self,args):
+        
+        u = args[0]
+
         # symbolic system parameters 
         E, A, I, r, rho, l, = sym.symbols('E A, I r rho l')
 
@@ -107,12 +112,12 @@ class GEBF_Element2D(Body):
         # Substitute State Variables
         # re-make symbols for proper substitution and create the paird list
         q = sym.Matrix(sym.symarray('q',2*3))
-        qe = [body.theta1] + u[:3] + [body.theta2] + u[3:]        
+        qe = [self.theta1] + u[:2] + [self.theta2] + u[2:]        
         q_sub = [(q, qi) for q, qi in zip(q, qe)]
        
         # Substitute state variables
-        self.beta = self.beta.subs(q_sub)
-        self.M = self.M.subs(q_sub)
+        self.beta = self.beta.subs(q_sub).evalf()
+        self.M = self.M.subs(q_sub).evalf()
 
         # Form the binary-DCA algebraic quantities
         # Partition mass matrix
