@@ -13,6 +13,10 @@ import MultiBodyFuncts as MBF
 
 from numpy.linalg import inv
 
+# Rigid_Body is the class that defines a rigid body
+
+# Joint is the class that defines a single 
+# kinematic joint in a multibody system		
 class Joint():
     def __init__(self,jointType):
         if jointType == 'revolute2D':
@@ -44,24 +48,24 @@ class Body:
         elif body_type == 'gebf':
             GEBF_Element2D.intProps(self, args)
 
-# Rigid_Body is the class that defines a rigid body
 class Rigid_Body2D(Body):
     
     def initialize(self, args):
         self.m = args[0]
         self.l = args[1]
         self.I = args[2]
-    
+
     def intProps(self):
+
         # Locate Handles from C.M. in Body-Fixed Framen and rotate to 'N'
-        self.r01 = np.dot(self.CBN,np.array([-self.l/2,0]))
-        self.r02 = np.dot(self.CBN,np.array([ self.l/2,0]))
+        self.r01 = np.dot(self.CBN,np.array([0,-self.l/2]))
+        self.r02 = np.dot(self.CBN,np.array([0, self.l/2]))
         
         # Applied and body forces
         # Only applied or body force is gravity
         Fg = np.array([0,0,self.m*-9.81])
-        self.Fa1 = Fg 
-        self.Fa2 = Fg 
+        Fa1 = Fg 
+        Fa2 = Fg 
 
         # construct shifter matricies for the **PLANAR** problem
         self.S01 = np.eye(3) + np.vstack((np.array([[0, -self.r01[1], self.r01[0]]]),np.zeros((2,3))))
@@ -77,10 +81,8 @@ class Rigid_Body2D(Body):
         self.z21 = np.dot(self.S02.T,np.dot(self.Minv,self.S01))
         self.z22 = np.dot(self.S02.T,np.dot(self.Minv,self.S02))
 
-        self.z13 = np.dot(self.S01.T,np.dot(self.Minv,self.Fa1)) - \
-                self.omega**2*np.hstack((0,self.r01)).reshape(self.Fa1.shape) 
-        self.z23 = np.dot(self.S02.T,np.dot(self.Minv,self.Fa2)) - \
-                self.omega**2*np.hstack((0,self.r02)).reshape(self.Fa2.shape) 
+        self.z13 = np.dot(self.S01.T,np.dot(self.Minv,Fa1)) - self.omega**2*np.hstack((0,self.r01)).reshape(Fa1.shape) 
+        self.z23 = np.dot(self.S02.T,np.dot(self.Minv,Fa2)) - self.omega**2*np.hstack((0,self.r02)).reshape(Fa2.shape) 
 
 class GEBF_Element2D(Body):
     
