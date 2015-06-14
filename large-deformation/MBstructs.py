@@ -40,7 +40,7 @@ class Body:
 
     def intProps(self, body_type, *args):
         if body_type == 'rigid':
-            Rigid_Body2D.intProps(self, args)
+            Rigid_Body2D.intProps(self)
         elif body_type == 'gebf':
             GEBF_Element2D.intProps(self, args)
 
