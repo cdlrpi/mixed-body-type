@@ -1,3 +1,4 @@
+import pdb
 import numpy as np
 import math
 from scipy.integrate import odeint
@@ -22,6 +23,9 @@ def solve(n,i,bodies,joints,BC1,BC2):
         #create a new list called "newbds" containing the correct number of
         #new bodies
         newbds=[]
+        # create new joint list using binary tree assembly
+        newjs = joints[::2]
+
         if (len(bodies)%2)==0:
             for k in range (0,math.trunc(len(bodies)/2)):
                 newbds.append(MB.Rigid_Body2D())
@@ -47,6 +51,7 @@ def solve(n,i,bodies,joints,BC1,BC2):
             #Otherwise, calculate the new zetas for the newly assembled bodies
             #according to the formulae
             else:
+                
                 #X, Q, and Y  are  intermediate quantities
                 newbds[j].X=np.dot(joints[2*j+1].D.T,np.dot(bodies[2*j+1].z11+\
                         bodies[2*j].z22,joints[2*j+1].D))
@@ -54,7 +59,7 @@ def solve(n,i,bodies,joints,BC1,BC2):
                 newbds[j].W=np.dot(joints[2*j+1].D,np.dot(newbds[j].Xinv,joints[2*j+1].D.T))
                 newbds[j].Y=np.dot(newbds[j].W,bodies[2*j].z23-bodies[2*j+1].z13)#ommitted pdot*u
                
-               #assemble the bodies based on the formulas
+                #assemble the bodies based on the formulas
                 newbds[j].z11=bodies[2*j].z11-np.dot(bodies[2*j].z12,np.dot(newbds[j].W,bodies[2*j].z21))
                 newbds[j].z12=np.dot(bodies[2*j].z12,np.dot(newbds[j].W,bodies[2*j+1].z12))
                 newbds[j].z21=np.dot(bodies[2*j+1].z21,np.dot(newbds[j].W,bodies[2*j].z21))
@@ -64,17 +69,7 @@ def solve(n,i,bodies,joints,BC1,BC2):
                 newbds[j].z23=bodies[2*j+1].z23+np.dot(bodies[2*j+1].z21,newbds[j].Y)
             j=j+1
             
-        
-        #Find the new joints corresponding to the new bodies
-        # newjs=[]
-        # for k in range (0,len(newbds)):
-        #     # newjs.append(MB.Joint())
-        #     if j==len(newjs)-1 and odd ==1:
-        #         newjs.append(MB.Joint(joints[len(joints)-1].P,np.max(joints[len(joints)-1].P)))
-        #     else:
-        #         newjs.append(MB.Joint(joints[2*k].P,np.max(joints[2*k].P)))
-        # I am not sure about the above code, I think this does the same thing
-        newjs = [MB.Joint('revolute2D') for k in range (len(newbds))]
+        # newjs = [MB.Joint('revolute2D') for k in range (len(newbds))]
         
         #This is the recursive call.  This will return a list of the form:
         #[A11,F1c1,A12,F1c2,A21,F2c1,...,An2,Fnc2] where the Axy's and Fxcy's 
@@ -84,8 +79,8 @@ def solve(n,i,bodies,joints,BC1,BC2):
         #the boundary conditions,and the state variables at that timestep.
         #At this point this function will repeat itself in a loop until there is
         #one body left
+
         sol=solve(n,i+1,newbds,newjs,BC1,BC2)
-       
         #Forces and Accelerations at the new joints are found,
         #so these values can now be found for the old joints.
         #newsol will contain the new solution
@@ -150,32 +145,7 @@ def solve(n,i,bodies,joints,BC1,BC2):
     #This is the base case of this recursive function.  This is where
     #the recursion ends and reassembly begins
     elif BC1==2 and BC2==1:
-        # #Fc2 is zero because that end is free
-        # Fc2=np.zeros((6))
-        # 
-        # #Because the first joint is a pin, it will
-        # #have no translational motion, and support no 
-        # #moments, so mat is used to solve for the two translational
-        # #forces of Fc1
-        # mat=np.zeros((3,4))
-        # mat[:,:3]=bodies[0].z11[3:,3:]
-        # mat[:,3]=-1*bodies[0].z13[3:]
-        # 
-        # #Loop to put a matrix in reduced row echelon form
-        # for s in range(0,3):
-        #     mat[s,:]=mat[s,:]/mat[s,s]
-        #     for j in range(0,3):
-        #         if s !=j:
-        #             mat[j,:]=mat[j,:]-(mat[s,:]*mat[j,s])
-    
-        # Fc1=np.zeros_like(Fc2)
-        # Fc1[3:]=mat[:,3]
 
-        # #solve for the A's given Fc2=0
-        # A1=np.dot(bodies[0].z11,Fc1)+bodies[0].z13
-        # A2=np.dot(bodies[0].z21,Fc1)+bodies[0].z23
-        # sol=[A1,Fc1,A2,Fc2]
-        
         #return the forces and accellerations at the end joints
         #and begin disassembly
         Q = np.dot(joints[0].P.T,np.dot(np.linalg.inv(bodies[0].z11),joints[0].P))
@@ -189,20 +159,5 @@ def solve(n,i,bodies,joints,BC1,BC2):
         Fc2 = np.zeros_like(Fc1)
         A2 = np.dot(bodies[0].z21,Fc1) + np.dot(bodies[0].z22,Fc2) + bodies[0].z23
         
-        # A1 = A1.reshape((A1.size,))
-        # A2 = A2.reshape((A2.size,))
-        # Fc1 = Fc1.reshape((Fc1.size,))
-        # Fc2 = Fc2.reshape((Fc2.size,))
-      
-        # print(A1)
-        # print(A2)
-        # print(A1.shape)
-        # print(A2.shape)
-        # print(Fc1.shape)
-        # print(Fc2.shape)
-        # print(A1.size)
-        # print(A2.size)
-        # print(Fc1.size)
-        # print(Fc2.size)
         sol=[A1,Fc1,A2,Fc2]
         return sol  

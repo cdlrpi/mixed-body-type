@@ -17,15 +17,15 @@ class Joint():
     def __init__(self,jointType):
         if jointType == 'revolute2D':
             revolute2D.__init__(self)
-        elif jointType == 'gebf':
-            gebf.__init__(self)
+        elif jointType == 'fixed':
+            fixed.__init__(self)
 
 class revolute2D(Joint):
     def __init__(self):
         self.P = np.array([[1], [0], [0]])
         self.D = np.array([[0, 0], [1, 0], [0, 1]])
 
-class gebf(Joint):
+class fixed(Joint):
     def __init__(self):
         self.P = np.array([[0], [0], [0]])
         self.D = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])

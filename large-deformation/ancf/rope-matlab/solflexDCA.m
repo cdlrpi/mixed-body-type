@@ -1,7 +1,7 @@
 
 clear
 clc
-ne  =  2;
+ne  =  1;
 L   =  1.2;
 Y   =  0.7e6;
 I   =  1.215e-8;
@@ -33,7 +33,7 @@ size(ipe)
 M    =  [M11, M12; M21, M22];
 iM   =  inv(M);
 dt   =  0.0001;
-endT =  1;
+endT =  0.0001;
 Time =  0:dt:endT;
 tic
 [pe ve]  =  ODEDCAANCFRK4(dt,Time,ipe,ive,ne,iM,l,rho,A,Y,I);
