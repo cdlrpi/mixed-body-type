@@ -44,7 +44,7 @@ class Body:
         elif body_type == 'gebf':
             GEBF_Element2D.intProps(self, args)
 
-# Rigid_Body is the class that defines a rigid body
+# Rigid_Body is the class that defines inertial properties of a rigid body
 class Rigid_Body2D(Body):
     
     def initialize(self, args):
@@ -220,3 +220,40 @@ class GEBF_Element2D(Body):
 #         self.lambda13 = beta[0:4]
 #         self.lambda23 = beta[4:8]
 # 
+#         # Substitute state variables
+#         beta = beta.subs(q_sub).evalf()
+#         M = M.subs(q_sub).evalf()
+#         
+#         # Form the binary-DCA algebraic quantities
+#         # Partition mass matrix
+#         M11 = np.array(M[0:3,0:3])
+#         M12 = np.array(M[0:3,3:6])
+#         M21 = np.array(M[3:6,0:3])
+#         M22 = np.array(M[3:6,3:6])
+#         
+#         # For now use these definitions to cast Fic (constraint forces between GEBF elements) 
+#         # into generalized constraint forces
+#         gamma11 = np.eye(3)
+#         gamma12 = np.zeros((3,3))
+#         gamma22 = np.eye(3)
+#         gamma21 = np.zeros((3,3))
+#         
+#         # partition beta into lambda13 and lambda23
+#         gamma13 = np.array(beta[0:3])
+#         gamma23 = np.array(beta[3:6])
+#         
+#         
+#         # Commonly inverted quantities
+#         iM11 = inv(M11)
+#         iM22 = inv(M22)
+#         Gamma1 = inv(M11 - M12*iM22*M21)
+#         Gamma2 = inv(M22 - M21*iM11*M12)
+#         
+#         # Compute all terms of the two handle equations
+#         z11 = Gamma1.dot(gamma11 - M12.dot(iM22.dot(gamma21)))
+#         z12 = Gamma1.dot(gamma12 - M12.dot(iM22.dot(gamma22)))
+#         z13 = Gamma1.dot(gamma13 - M12.dot(iM22.dot(gamma23)))
+#         
+#         z21 = Gamma2.dot(gamma21 - M21.dot(iM11.dot(gamma11)))
+#         z22 = Gamma2.dot(gamma22 - M21.dot(iM11.dot(gamma12)))
+#         z23 = Gamma2.dot(gamma23 - M21.dot(iM11.dot(gamma13)))

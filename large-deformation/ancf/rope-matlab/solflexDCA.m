@@ -1,18 +1,21 @@
 
 clear
 clc
-ne  =  1;
+ne  =  2;
 L   =  1.2;
 Y   =  0.7e6;
 I   =  1.215e-8;
 A   =  0.0018;
 rho =  5540;
-l   =  L/ne;
+% l   =  L/ne;
+l = 0.12
 g   =  9.81;
 II  =  I;
 ipe = zeros(8,ne);
 ive = zeros(8,ne);
 theta1_i =  0;
+
+
 for i  = 1:ne
     e1 = (i*l-l)*cos(theta1_i);
     e2 = (i*l-l)*sin(theta1_i);

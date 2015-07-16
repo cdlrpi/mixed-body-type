@@ -28,3 +28,4 @@ binv.body_zeta13 = A3(1:4,:);
 binv.body_zeta21 = A1(5:8,:);
 binv.body_zeta22 = A2(5:8,:);
 binv.body_zeta23 = A3(5:8,:);
+keyboard
