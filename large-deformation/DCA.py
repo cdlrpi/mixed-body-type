@@ -149,11 +149,15 @@ def solve(n,i,bodies,joints,BC1,BC2):
         #return the forces and accellerations at the end joints
         #and begin disassembly
         Q = np.dot(joints[0].P.T,np.dot(np.linalg.inv(bodies[0].z11),joints[0].P))
-        if Q.size == 1:
+        normQ = np.linalg.norm(Q)
+        if normQ == 0:
+            udot = 0
+        elif Q.size == 1:
             invQ = 1/Q
+            udot = np.dot(invQ,np.dot(joints[0].P.T,np.dot(np.linalg.inv(bodies[0].z11),bodies[0].z13)))
         else:
             invQ = np.linalg.inv(Q)
-        udot = np.dot(invQ,np.dot(joints[0].P.T,np.dot(np.linalg.inv(bodies[0].z11),bodies[0].z13)))
+            udot = np.dot(invQ,np.dot(joints[0].P.T,np.dot(np.linalg.inv(bodies[0].z11),bodies[0].z13)))
         A1 = np.dot(joints[0].P,udot)
         Fc1 = np.dot(np.linalg.inv(bodies[0].z11),A1 - bodies[0].z13)
         Fc2 = np.zeros_like(Fc1)

@@ -3,6 +3,7 @@ function  edd = MainFunction(p, ne, iM, l, rho, A, Y, I)
 matrices = mat(p, ne, iM, l, rho, A, Y, I);
 invphi   = mainpass(matrices,ne);
 
+keyboard
 back     = disassembly(invphi,ne);
 
 edd = [];

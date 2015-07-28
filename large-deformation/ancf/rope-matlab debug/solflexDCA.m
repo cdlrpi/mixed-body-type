@@ -32,13 +32,11 @@ end
 size(ipe)
 
 
-[M11, M12, M21, M22, eta1, iM22]  = MassMatrix(l,rho,A);
+[M11 M12 M21 M22 eta1 iM22]  = MassMatrix(l,rho,A);
 M    =  [M11, M12; M21, M22];
 iM   =  inv(M);
-
 dt   =  0.0001;
 endT =  0.0001;
-% endT =  1;
 Time =  0:dt:endT;
 tic
 [pe ve]  =  ODEDCAANCFRK4(dt,Time,ipe,ive,ne,iM,l,rho,A,Y,I);
