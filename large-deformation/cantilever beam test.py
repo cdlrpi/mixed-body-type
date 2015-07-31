@@ -1,9 +1,4 @@
-
-# coding: utf-8
-
-# ## This notebook simulates a cantilever beam
-
-# In[1]:
+from __future__ import division
 
 import pdb as pdb 
 import math
@@ -20,7 +15,6 @@ import MultiBodyFuncts as MBF
 import DCA
 
 from IPython.display import display
-from __future__ import division
 from sympy.interactive import printing
 printing.init_printing(use_latex='mathjax')
 np.set_printoptions(precision=4,suppress=True)
@@ -59,8 +53,8 @@ def get_topology_2DGEBF(q,r0,nelements,npoints):
     position_element = np.array_split(position,nelements,axis=1)
     
     
-    # interpolate with 5 points per element 
-    x = np.linspace(0,1,npoints)
+    # interpolate 
+    x = np.linspace(-1,1,npoints)
     h1 = (1/2)*(1 - x)
     h2 = (1/2)*(1 + x)
 
@@ -68,11 +62,10 @@ def get_topology_2DGEBF(q,r0,nelements,npoints):
     H = np.array([np.hstack((h1*np.eye(2), h2*np.eye(2))) 
                   for h1,h2 in zip(h1,h2)]).reshape(2*npoints,4).T
     
-    np.array([np.hstack((h1*np.eye(2), h2*np.eye(2))) 
-                  for h1,h2 in zip(h1,h2)]).reshape(2*npoints,4)
-    
+    # Interpolate the X and Y cooridnates
     xy = np.hstack(np.array([np.dot(position_element,H) 
                              for position_element in position_element]))
+    
     x = np.array_split(xy[:,0::2],ntsteps)
     y = np.array_split(xy[:,1::2],ntsteps)
     return x,y
@@ -277,7 +270,7 @@ def simulate(state,tspan,nbodies,bodiesGEBF,bodiesRigid,joints,BC1,BC2):
 #          - For one body DCA returns [A1 F1c A2 F2c]
 #          - For two or more bodies DCA returns [A1 A2] ***
 nRIGID = 0
-nGEBF  = 2
+nGEBF  = 10
 
 nbodies = nGEBF + nRIGID
 
@@ -335,12 +328,12 @@ u0 = np.array([u for u_body in u0 for u in u_body],dtype=np.double).squeeze()
 state0 = np.hstack((q0,u0))
 
 # Length of time of the simulation
-t = 0.005
+t = 1.0
 dt = 0.0001
 tspan = np.arange(0,t,dt)
 
 
-# In[9]:
+# In[ ]:
 
 q = state0[:nRIGID*ndofsRigid + nGEBF*ndofsGEBF]
 u = state0[nRIGID*ndofsRigid + nGEBF*ndofsGEBF:]
@@ -380,13 +373,13 @@ bodies = bodiesRigid+bodiesGEBF
 # [display([body.z13, body.z23]) for body in bodies]
 
 
-# In[10]:
+# In[ ]:
 
 # odeint is the numerical integrator used
 state = odeint(simulate,state0,tspan,(nbodies,bodiesGEBF,bodiesRigid,joints,2,1))
 
 
-# In[11]:
+# In[ ]:
 
 q = state[:,:nRIGID*ndofsRigid + nGEBF*ndofsGEBF]
 u = state[:,nRIGID*ndofsRigid + nGEBF*ndofsGEBF:]
@@ -398,75 +391,15 @@ qGEBF  = q[:,nRIGID*ndofsRigid:]
 uGEBF  = u[:,nRIGID*ndofsRigid:]
 
 # x,y = get_topology_2DRigid(qRigid)
-r0 = np.array([[l*i, 0, l*(i+1), 0] for i in range(nGEBF)],dtype=np.double).reshape(1,ndofsGEBF*nGEBF - 2*nGEBF)
-x,y = get_topology_2DGEBF(qGEBF, r0, nGEBF, 2)
+r0 = np.array([[l*i, 0, l*(i+1), 0] 
+               for i in range(nGEBF)],dtype=np.double).reshape(1,ndofsGEBF*nGEBF - 2*nGEBF)
 
+# Interpolate between nodes with npoints, and compute absolute positions of nodes for plotting
+npoints = 10
+x,y = get_topology_2DGEBF(qGEBF, r0, nGEBF, npoints)
 
-# In[12]:
+x = x = np.vstack(x)
+y = y = np.vstack(y)
 
-# ke,pe,te = get_energy_Rigid(bodiesRigid,state)
-
-
-# In[13]:
-
-# # The energy of the system is calculated and plotted
-# %matplotlib inline 
-# plt.plot(tspan,te-te[0])
-# plt.xlabel("Time [s]")
-# plt.ylabel("energy")
-# plt.title("System Energy")
-# plt.show()
-
-# plt.plot(tspan,pe,tspan,ke)
-# plt.xlabel("Time[s]")
-# plt.ylabel("energy")
-# plt.title("Kinetic and Potential Energy")
-# plt.show
-
-
-# In[14]:
-
-# %qtconsole
-
-
-# In[15]:
-
-fig = plt.figure()
-ax = fig.add_subplot(111, autoscale_on=False, xlim=(0.0, 0.3), ylim=(-0.1, 0.1))
-ax.grid()
-
-line, = ax.plot([], [], 'o-', lw=2)
-time_template = 'time = %.001fs'
-time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
-
-def init():
-    line.set_data([], [])
-    time_text.set_text('')
-    return line, time_text
-
-def animate(i):
-#     thisx = [0, x[i][1], x[i][2]]
-#     thisy = [0, y[i][1], y[i][2]]
-    thisx = x[i]
-    thisy = y[i]
-
-    line.set_data(thisx, thisy)
-    time_text.set_text(time_template%(i*dt))
-    return line, time_text
-
-ani = animation.FuncAnimation(fig, animate, np.arange(1, len(y)),
-    interval = 1, blit=False, init_func=init)
-
-#ani.save('double_pendulum.mp4', fps=15)
-plt.show()
-
-
-# In[16]:
-
-# %qtconsole
-
-
-# In[ ]:
-
-
-
+x.tofile('x.out')
+y.tofile('y.out')
