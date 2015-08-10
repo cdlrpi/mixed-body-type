@@ -11,6 +11,7 @@ import sympy as sym
 import pickle
 import MultiBodyFuncts as MBF
 
+from sympy import lambdify
 from numpy.linalg import inv
 
 class Joint():
@@ -93,69 +94,139 @@ class GEBF_Element2D(Body):
         self.rho = args[4]
         self.l   = args[5]
 
-    def intProps(self,args):
+        q = sym.Matrix(sym.symarray('q',6))
+        E, A, I, r, rho, l, = sym.symbols('E A I r rho l')
+
+        
+        # This makes self.M a function that returns the numeric mass matrix
+        M_sym = pickle.load( open( "gebf-mass-matrix.dump", "rb" ) )
+        self.M = lambdify((E, A, I, r, rho, l, q), M_sym)
+
+        # This makes self.beta a function that returns the numeric body froce vector
+        beta_sym = pickle.load( open( "gebf-force-vector.dump", "rb" ) )
+        self.beta = lambdify((E, A, I, r, rho, l, q), beta_sym)
+
+    def intProps(self, args):
        
         # u's are deformations not generalized speeds
         u = args[0]
-       
-        # re-make symbols for proper substitution
-        # no velocity dependent terms 
-        q = sym.Matrix(sym.symarray('q',6))
-        E, A, I, r, rho, l, = sym.symbols('E A I r rho l')
 
         # Some cheating going on here with the kinematics and "position" vector 
         # q_e is the "positions" with q0,q3 = sum(q0j), sum(q3j) (j = 1 ... nbodies)
         # self.theta1 and self.theta2 are updated in the kinematic sweep
-        q_e = [self.theta1] + u[:2] + [self.theta2] + u[2:]        
+        q = [self.theta1] + u[:2] + [self.theta2] + u[2:]        
 
-        # create the paird list for substitution
-        q_sub = [(q, qi) for q, qi in zip(q, q_e)]
-
-        # Load symbolic mass matrix and substitute material properties
-        self.M = pickle.load( open( "gebf-mass-matrix.dump", "rb" ) ).\
-        subs([(E, self.E), (A, self.A), (r, self.r), (I, self.I), (rho, self.rho), (l, self.l)]).\
-        subs(q_sub).evalf()
-        
-        # load the body and applied force vector and substitute material properties
-        self.beta = pickle.load( open( "gebf-force-vector.dump", "rb" ) ).\
-        subs([(E, self.E), (A, self.A), (r, self.r), (I, self.I), (rho, self.rho), (l, self.l)]).\
-        subs(q_sub).evalf()
+        M = self.M(self.E, self.A, self.I, self.r, self.rho, self.l, q)
+        beta = self.beta(self.E, self.A, self.I, self.r, self.rho, self.l, q,)
 
         # Form the binary-DCA algebraic quantities
         # Partition mass matrix
-        self.M11 = np.array(self.M[0:3,0:3])
-        self.M12 = np.array(self.M[0:3,3:6])
-        self.M21 = np.array(self.M[3:6,0:3])
-        self.M22 = np.array(self.M[3:6,3:6])
+        M11 = np.array(M[0:3,0:3])
+        M12 = np.array(M[0:3,3:6])
+        M21 = np.array(M[3:6,0:3])
+        M22 = np.array(M[3:6,3:6])
 
         # For now use these definitions to cast Fic (constraint forces between GEBF elements) 
         # into generalized constraint forces
-        self.gamma11 = np.eye(3)
-        self.gamma12 = np.zeros((3,3))
-        self.gamma22 = np.eye(3)
-        self.gamma21 = np.zeros((3,3))
+        gamma11 = np.eye(3)
+        gamma12 = np.zeros((3,3))
+        gamma22 = np.eye(3)
+        gamma21 = np.zeros((3,3))
         
         # partition beta into lambda13 and lambda23
-        self.gamma13 = np.array(self.beta[0:3])
-        self.gamma23 = np.array(self.beta[3:6])
+        gamma13 = np.array(beta[0:3])
+        gamma23 = np.array(beta[3:6])
 
 
         # Commonly inverted quantities
-        self.iM11 = inv(self.M11)
-        self.iM22 = inv(self.M22)
-        self.Gamma1 = inv(self.M11 - self.M12.dot(self.iM22.dot(self.M21)))
-        self.Gamma2 = inv(self.M22 - self.M21.dot(self.iM11.dot(self.M12)))
+        iM11 = inv(M11)
+        iM22 = inv(M22)
+        Gamma1 = inv(M11 - M12.dot(iM22.dot(M21)))
+        Gamma2 = inv(M22 - M21.dot(iM11.dot(M12)))
 
         # Compute all terms of the two handle equations
-        self.z11 = self.Gamma1.dot(self.gamma11 - self.M12.dot(self.iM22.dot(self.gamma21)))
-        self.z12 = self.Gamma1.dot(self.gamma12 - self.M12.dot(self.iM22.dot(self.gamma22)))
-        self.z21 = self.Gamma2.dot(self.gamma21 - self.M21.dot(self.iM11.dot(self.gamma11)))
-        self.z22 = self.Gamma2.dot(self.gamma22 - self.M21.dot(self.iM11.dot(self.gamma12)))
+        self.z11 = Gamma1.dot(gamma11 - M12.dot(iM22.dot(gamma21)))
+        self.z12 = Gamma1.dot(gamma12 - M12.dot(iM22.dot(gamma22)))
+        self.z21 = Gamma2.dot(gamma21 - M21.dot(iM11.dot(gamma11)))
+        self.z22 = Gamma2.dot(gamma22 - M21.dot(iM11.dot(gamma12)))
         
         
-        self.z13 = self.Gamma1.dot(self.gamma13 - self.M12.dot(self.iM22.dot(self.gamma23))).reshape((3,1))
-        self.z23 = self.Gamma2.dot(self.gamma23 - self.M21.dot(self.iM11.dot(self.gamma13))).reshape((3,1))
+        self.z13 = Gamma1.dot(gamma13 - M12.dot(iM22.dot(gamma23))).reshape((3,1))
+        self.z23 = Gamma2.dot(gamma23 - M21.dot(iM11.dot(gamma13))).reshape((3,1))
 
+# old version - works but call to subs is too slow
+# class GEBF_Element2D(Body)
+#     
+#     def initialize(self, args):
+#         self.E   = args[0]
+#         self.A   = args[1]
+#         self.I   = args[2]
+#         self.r   = args[3]
+#         self.rho = args[4]
+#         self.l   = args[5]
+# 
+#     def intProps(self,args):
+#        
+#         # u's are deformations not generalized speeds
+#         u = args[0]
+#        
+#         # re-make symbols for proper substitution
+#         # no velocity dependent terms 
+#         q = sym.Matrix(sym.symarray('q',6))
+#         E, A, I, r, rho, l, = sym.symbols('E A I r rho l')
+# 
+#         # Some cheating going on here with the kinematics and "position" vector 
+#         # q_e is the "positions" with q0,q3 = sum(q0j), sum(q3j) (j = 1 ... nbodies)
+#         # self.theta1 and self.theta2 are updated in the kinematic sweep
+#         q_e = [self.theta1] + u[:2] + [self.theta2] + u[2:]        
+# 
+#         # create the paird list for substitution
+#         q_sub = [(q, qi) for q, qi in zip(q, q_e)]
+# 
+#         # Load symbolic mass matrix and substitute material properties
+#         self.M = pickle.load( open( "gebf-mass-matrix.dump", "rb" ) ).\
+#         subs([(E, self.E), (A, self.A), (r, self.r), (I, self.I), (rho, self.rho), (l, self.l)]).\
+#         subs(q_sub).evalf()
+#         
+#         # load the body and applied force vector and substitute material properties
+#         self.beta = pickle.load( open( "gebf-force-vector.dump", "rb" ) ).\
+#         subs([(E, self.E), (A, self.A), (r, self.r), (I, self.I), (rho, self.rho), (l, self.l)]).\
+#         subs(q_sub).evalf()
+# 
+#         # Form the binary-DCA algebraic quantities
+#         # Partition mass matrix
+#         self.M11 = np.array(self.M[0:3,0:3])
+#         self.M12 = np.array(self.M[0:3,3:6])
+#         self.M21 = np.array(self.M[3:6,0:3])
+#         self.M22 = np.array(self.M[3:6,3:6])
+# 
+#         # For now use these definitions to cast Fic (constraint forces between GEBF elements) 
+#         # into generalized constraint forces
+#         self.gamma11 = np.eye(3)
+#         self.gamma12 = np.zeros((3,3))
+#         self.gamma22 = np.eye(3)
+#         self.gamma21 = np.zeros((3,3))
+#         
+#         # partition beta into lambda13 and lambda23
+#         self.gamma13 = np.array(self.beta[0:3])
+#         self.gamma23 = np.array(self.beta[3:6])
+# 
+# 
+#         # Commonly inverted quantities
+#         self.iM11 = inv(self.M11)
+#         self.iM22 = inv(self.M22)
+#         self.Gamma1 = inv(self.M11 - self.M12.dot(self.iM22.dot(self.M21)))
+#         self.Gamma2 = inv(self.M22 - self.M21.dot(self.iM11.dot(self.M12)))
+# 
+#         # Compute all terms of the two handle equations
+#         self.z11 = self.Gamma1.dot(self.gamma11 - self.M12.dot(self.iM22.dot(self.gamma21)))
+#         self.z12 = self.Gamma1.dot(self.gamma12 - self.M12.dot(self.iM22.dot(self.gamma22)))
+#         self.z21 = self.Gamma2.dot(self.gamma21 - self.M21.dot(self.iM11.dot(self.gamma11)))
+#         self.z22 = self.Gamma2.dot(self.gamma22 - self.M21.dot(self.iM11.dot(self.gamma12)))
+#         
+#         
+#         self.z13 = self.Gamma1.dot(self.gamma13 - self.M12.dot(self.iM22.dot(self.gamma23))).reshape((3,1))
+#         self.z23 = self.Gamma2.dot(self.gamma23 - self.M21.dot(self.iM11.dot(self.gamma13))).reshape((3,1))
     
 # class ANCF_Element2D():
 #     def __init__(self, area, modulus, inertia, density, length, state):
