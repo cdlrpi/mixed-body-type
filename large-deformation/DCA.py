@@ -4,8 +4,8 @@ import math
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
-import MBstructs as MB
-import MultiBodyFuncts as MBF
+import MBstructs as MBS
+import MBfuncts  as MBF
 
 def solve(n,i,bodies,joints,BC1,BC2): 
     """
@@ -25,14 +25,15 @@ def solve(n,i,bodies,joints,BC1,BC2):
         newbds=[]
         # create new joint list using binary tree assembly
         newjs = joints[::2]
+        js_assem = joints[1::2]
 
         if (len(bodies)%2)==0:
             for k in range (0,math.trunc(len(bodies)/2)):
-                newbds.append(MB.Rigid_Body2D())
+                newbds.append(MBS.Rigid_Body2D())
         else:
             odd=1
             for k in range (0,math.trunc(len(bodies)/2)+1):
-                newbds.append(MB.Rigid_Body2D())
+                newbds.append(MBS.Rigid_Body2D())
             
         #Loop through all of the new bodies, assembling the correct two
         #"old" bodies to create the new.
@@ -93,26 +94,34 @@ def solve(n,i,bodies,joints,BC1,BC2):
         #solution list, along with the next values in sol.
         flag=0
         for j in range(0,len(newbds)):
-            #Don't enter this if there are an odd number of bodies and it 
-            #is the last time through the loop, otherwise enter.
+            # Don't enter this if there are an odd number of bodies and it 
+            # is the last time through the loop, otherwise enter.
             if not(odd==1 and j==len(newbds)-1):
-                #index counter
+                # index counter
                 k=len(newsol)-2
-                #The force in the joint between two assembled bodies
-                F=-1*(np.dot(joints[j+1].D,np.dot(newbds[j].Xinv,np.dot(joints[j+1].D.T,\
+
+
+                # The force in the joint between two assembled bodies
+                # There is some error with the original indexing of the joint
+                # Fix: create a list of joints that were used to assemble the bodies 
+                #      
+                F=-1*(np.dot(js_assem[j].D,np.dot(newbds[j].Xinv,np.dot(js_assem[j].D.T,\
                         (np.dot(bodies[2*j].z21,newsol[k+1])-np.dot(bodies[2*j+1].z12,sol[4*j+3])+\
                         bodies[2*j].z23-bodies[2*j+1].z13)))))
-                #A2 is the acceleration of handle 2 of body k
+                # F=-1*(np.dot(joints[j+1].D,np.dot(newbds[j].Xinv,np.dot(joints[j+1].D.T,\
+                #         (np.dot(bodies[2*j].z21,newsol[k+1])-np.dot(bodies[2*j+1].z12,sol[4*j+3])+\
+                #         bodies[2*j].z23-bodies[2*j+1].z13)))))
+                # A2 is the acceleration of handle 2 of body k
                 A2=np.dot(bodies[2*j].z21,newsol[k+1])+np.dot(bodies[2*j].z22,F)+bodies[2*j].z23
-                #A1 is the acceleration of handle 1 of body k+1
+                # A1 is the acceleration of handle 1 of body k+1
                 A1=np.dot(bodies[2*j+1].z11,-1*F)+np.dot(bodies[2*j+1].z12,sol[4*j+3])+bodies[2*j+1].z13
-                #Add the newly found values to new solution list,
-                #maintiaining the format described above.
+                # Add the newly found values to new solution list,
+                # maintiaining the format described above.
                 newsol.append(A2)
                 newsol.append(F)
                 newsol.append(A1)
                 newsol.append(-1*F)
-                #Add the next two values in sol to the new solution list
+                # Add the next two values in sol to the new solution list
                 newsol.append(sol[4*j+2])
                 newsol.append(sol[4*j+3])
             

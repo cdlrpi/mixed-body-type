@@ -11,7 +11,7 @@ def DCM(theta):
 
 # Once these work they should be moved to class functions (maybe)
 # Plotting Functions
-def get_topology_2DRigid(q,bodies):
+def get_topology_2DRigid(q,l):
     """
     This fuction determined the location of the endpoints of a rigid pendlum.  
     """
@@ -20,8 +20,8 @@ def get_topology_2DRigid(q,bodies):
     C = [[np.array([[np.cos(angle),-np.sin(angle)],\
                     [np.sin(angle), np.cos(angle)]]) 
       for angle in tstep] for tstep in theta]
-    R = [[np.dot(CBN,np.array([body.l,0])) for CBN in timestep] \
-                                      for (timestep,body) in zip(C,bodies)]
+    R = [[np.dot(CBN,np.array([l,0])) for CBN in timestep] \
+                                      for timestep in C]
     R = [np.cumsum(r,0) for r in R]
 
     x = [np.hstack((np.array([0]),r[:,0])) for r in R]
@@ -188,3 +188,25 @@ def kinematics_GEBF2D(bodies,q,u):
         body.theta1 = q0
         body.theta2 = q3
 
+def myRK4(func, state0, tspan, *args):
+    """
+    Inputs:
+        func - function that returns the derivatives of the state variables
+          x0 - starting conditions
+           t - array of time values 
+   Outputs:
+       w - approximate solution at the mesh-points (time-steps)
+    """
+    dt = np.max(np.diff(tspan))
+    nsteps = len(tspan)
+    state = np.zeros((nsteps-1,len(state0)))
+    state = np.vstack((state0,state))
+        
+    for i in range(len(tspan)-1):
+        k1 = dt*func(state[i,:],        tspan,*args)
+        k2 = dt*func(state[i,:] + k1/2, tspan,*args)
+        k3 = dt*func(state[i,:] + k2/2, tspan,*args)
+        k4 = dt*func(state[i,:] + k3,   tspan,*args)
+        
+        state[i+1,:] = state[i,:] + (1/6*((k1)+(2*k2)+(2*k3)+(k4))).reshape(1,len(state0))
+    return state
