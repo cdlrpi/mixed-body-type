@@ -9,7 +9,7 @@
 import numpy as np
 import sympy as sym
 import pickle
-import MultiBodyFuncts as MBF
+import MBfuncts as MBF
 
 from sympy import lambdify
 from numpy.linalg import inv
