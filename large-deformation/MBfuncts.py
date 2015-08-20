@@ -60,8 +60,9 @@ def get_topology_2DGEBF(q,r0,nelements,npoints):
     xy = np.hstack(np.array([np.dot(position_element,H) 
                              for position_element in position_element]))
     
-    x = np.array_split(xy[:,0::2],ntsteps)
-    y = np.array_split(xy[:,1::2],ntsteps)
+    x = np.array_split(xy[:,0::2],ntsteps+1)
+    y = np.array_split(xy[:,1::2],ntsteps+1)
+
     return x,y
     
 
@@ -147,11 +148,11 @@ def get_gen_accel_Rigid(nbodies, joints, accel):
     for j in range(nbodies):
         if j == 0:
             A1 = accel.pop(0)
-            udot[j] = np.dot(np.transpose(joints[j].P),A1)
+            udot[j] = np.dot(joints[j].P.T,A1)
         else:
             A2 = accel.pop(0)
             A1 = accel.pop(0)
-            udot[j] = np.dot(np.transpose(joints[j].P),(A1-A2))
+            udot[j] = np.dot(joints[j].P.T,(A1-A2))
     
     #add the velocities to d_dt and return to the integrator
     return udot 

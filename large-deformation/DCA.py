@@ -52,22 +52,22 @@ def solve(n,i,bodies,joints,BC1,BC2):
             #Otherwise, calculate the new zetas for the newly assembled bodies
             #according to the formulae
             else:
-                
+
                 #X, Q, and Y  are  intermediate quantities
-                newbds[j].X=np.dot(joints[2*j+1].D.T,np.dot(bodies[2*j+1].z11+\
-                        bodies[2*j].z22,joints[2*j+1].D))
+                newbds[j].X=np.dot(joints[2*j+1].D.T,np.dot(bodies[2*j+1].z11+bodies[2*j].z22,joints[2*j+1].D))
                 newbds[j].Xinv=np.linalg.inv(newbds[j].X)
                 newbds[j].W=np.dot(joints[2*j+1].D,np.dot(newbds[j].Xinv,joints[2*j+1].D.T))
                 newbds[j].Y=np.dot(newbds[j].W,bodies[2*j].z23-bodies[2*j+1].z13)#ommitted pdot*u
                
                 #assemble the bodies based on the formulas
-                newbds[j].z11=bodies[2*j].z11-np.dot(bodies[2*j].z12,np.dot(newbds[j].W,bodies[2*j].z21))
-                newbds[j].z12=np.dot(bodies[2*j].z12,np.dot(newbds[j].W,bodies[2*j+1].z12))
-                newbds[j].z21=np.dot(bodies[2*j+1].z21,np.dot(newbds[j].W,bodies[2*j].z21))
-                newbds[j].z22=bodies[2*j+1].z22-\
-                        np.dot(bodies[2*j+1].z21,np.dot(newbds[j].W,bodies[2*j+1].z12))
-                newbds[j].z13=bodies[2*j].z13-np.dot(bodies[2*j].z12,newbds[j].Y)
-                newbds[j].z23=bodies[2*j+1].z23+np.dot(bodies[2*j+1].z21,newbds[j].Y)
+                newbds[j].z11 = bodies[2*j].z11 - np.dot(bodies[2*j].z12, np.dot(newbds[j].W, bodies[2*j].z21))
+                newbds[j].z22 = bodies[2*j+1].z22 - np.dot(bodies[2*j+1].z21, np.dot(newbds[j].W, bodies[2*j+1].z12))
+                
+                newbds[j].z12 = np.dot(bodies[2*j].z12, np.dot(newbds[j].W, bodies[2*j+1].z12))
+                newbds[j].z21 = np.dot(bodies[2*j+1].z21, np.dot(newbds[j].W, bodies[2*j].z21))
+                
+                newbds[j].z13 = bodies[2*j].z13 - np.dot(bodies[2*j].z12,newbds[j].Y)
+                newbds[j].z23 = bodies[2*j+1].z23 + np.dot(bodies[2*j+1].z21,newbds[j].Y)
             j=j+1
             
         # newjs = [MB.Joint('revolute2D') for k in range (len(newbds))]
@@ -173,4 +173,5 @@ def solve(n,i,bodies,joints,BC1,BC2):
         A2 = np.dot(bodies[0].z21,Fc1) + np.dot(bodies[0].z22,Fc2) + bodies[0].z23
         
         sol=[A1,Fc1,A2,Fc2]
+
         return sol  
