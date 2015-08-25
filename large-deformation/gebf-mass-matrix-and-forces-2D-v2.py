@@ -10,6 +10,7 @@
 
 # In[1]:
 
+from __future__ import division
 import numpy as np
 import scipy as sp
 import sympy as sym
@@ -21,13 +22,9 @@ from sympy import cos, sin
 from sympy import lambdify
 
 from IPython.display import display
-from __future__ import division
 from sympy.interactive import printing
 printing.init_printing(use_latex='mathjax')
 np.set_printoptions(precision=4,suppress=True)
-
-import matplotlib.pyplot as plt
-get_ipython().magic('matplotlib inline')
 
 
 # #### Define Needed Functions
@@ -148,18 +145,18 @@ Alpha_skew = sym.Matrix.vstack(sym.Matrix.hstack(alpha1_skew,sym.zeros(2)),     
 X0 = sym.Matrix(['0','0','l','0'])
 rp = sym.simplify(X0 + u + R*s)
 
-print('r = ')
-display(rp)
+# print('r = ')
+# display(rp)
 
 # Define velocity of element endpoints (nodes)
 v = sym.simplify(udot + R*Omega_skew*s)
-print('v = ')
-display(v)
+# print('v = ')
+# display(v)
 
 # Define acceleration of element endpoints (nodes)
 a = sym.simplify(uddot + R*Omega_skew*Omega_skew*s + R*Alpha_skew*s)
-print('\na = ')
-display(a)
+# print('\na = ')
+# display(a)
 
 
 # ### Compute the Mass Matrix
@@ -184,8 +181,8 @@ Rp = H*rp
 
 # Define velocity of any point 
 Vp = H*v
-print('\nV = ')
-display(Vp)
+# print('\nV = ')
+# display(Vp)
 
 # Define velocity of any point 
 Ap = H*a
@@ -402,9 +399,9 @@ beta_num
 
 # In[ ]:
 
-print(z13)
-print()
-print(z23)
+#print(z13)
+#print()
+#print(z23)
 
 
 # In[ ]:
@@ -437,33 +434,13 @@ print(z23)
 theta = np.linspace(0,2*np.pi,200)
 q0GEBF = [np.array([theta,0,0,0,0,0]).reshape(6,1) for theta in theta]
 q0GEBF[:][3] = q0GEBF[:][0]
-Ul_theta = [U_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF]
-line, = plt.plot(theta/np.pi, Ul_theta, '-b', linewidth=2)
-plt.savefig(strainTime1, dpi=None, facecolor='w', edgecolor='w',
-        orientation='portrait', papertype=None, format=None,
-        transparent=False, bbox_inches=None, pad_inches=0.1,
-        frameon=None)
-
-plt.show()
-
-
-# In[ ]:
+Ul_theta1 = np.array([U_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF])
 
 theta = np.linspace(0,2*np.pi,200)
 q0GEBF = [np.array([theta,0,0,0,0,0]).reshape(6,1) for theta in theta]
 # q0GEBF[:][3] = q0GEBF[:][0]
-Ul_theta = [U_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF]
-line, = plt.plot(theta/np.pi, Ul_theta, '-b', linewidth=2)
+Ul_theta2 = np.array([U_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF])
 
-plt.show()
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-
+theta.tofile('theta')
+Ul_theta1.tofile('strain_energy1')
+Ul_theta2.tofile('strain_energy2')
