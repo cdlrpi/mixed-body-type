@@ -434,13 +434,20 @@ beta_num
 theta = np.linspace(0,2*np.pi,200)
 q0GEBF = [np.array([theta,0,0,0,0,0]).reshape(6,1) for theta in theta]
 q0GEBF[:][3] = q0GEBF[:][0]
-Ul_theta1 = np.array([U_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF])
+Ul_theta1 = np.array([Ul_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF])
+Ut_theta1 = np.array([Ut_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF])
+Qe_theta1 = np.array([np.norm(Qe_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0)) for q0 in q0GEBF])
 
-theta = np.linspace(0,2*np.pi,200)
 q0GEBF = [np.array([theta,0,0,0,0,0]).reshape(6,1) for theta in theta]
 # q0GEBF[:][3] = q0GEBF[:][0]
-Ul_theta2 = np.array([U_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF])
+Ul_theta2 = np.array([Ul_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF])
+Ut_theta2 = np.array([Ut_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0) for q0 in q0GEBF])
+Qe_theta2 = np.array([np.norm(Qe_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0)) for q0 in q0GEBF])
 
 theta.tofile('theta.data')
-Ul_theta1.tofile('strainEnergy1.data')
-Ul_theta2.tofile('strainEnergy2.data')
+Ul_theta1.tofile('strainEnergyAxial1.data')
+Ul_theta2.tofile('strainEnergyAxial2.data')
+Ut_theta1.tofile('strainEnergyBending1.data')
+Ut_theta2.tofile('strainEnergyBending2.data')
+Qe_theta1.tofile('strainEnergyBending1.data')
+Qe_theta2.tofile('strainEnergyBending2.data')
