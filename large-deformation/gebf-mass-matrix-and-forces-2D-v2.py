@@ -254,8 +254,6 @@ dx0 = x0.diff(x)
 
 # Compute axial strain
 u_ax = dx0 + du - R_interp*n1
-epsilon = sym.Matrix(['0', u_ax[0], '0', u_ax[1]])
-# epsilon = u_ax
 # display(epsilon)
 
 
@@ -281,9 +279,10 @@ G = E/2.6
 # R_interp_big = sym.Matrix.vstack(sym.Matrix.hstack(R_interp,sym.zeros(2)),
 #                                  sym.Matrix.hstack(sym.zeros(2), R_interp))
 C = sym.Matrix([[E*A, 0],[0, 5/6*G*A]])
-Ul = 1/2*sym.integrate(epsilon.T*dHdx.T*R_interp*C*R_interp.T*dHdx*epsilon, (x,0,l))[0]
-
+# epsilon = sym.Matrix(['0', u_ax[0], '0', u_ax[1]])
+epsilon = u_ax
 # Ul = 1/2*sym.integrate(epsilon.T*dHdx.T*R_interp*C*R_interp.T*dHdx*epsilon, (x,0,l))[0]
+Ul = 1/2*sym.integrate(epsilon.T*R_interp*C*R_interp.T*epsilon, (x,0,l))[0]
 # Ul = 1/2*sym.integrate(E*A*epsilon_squared, (x,0,l)) 
 
 # Compute Total Energy
@@ -445,9 +444,9 @@ Ut_theta2 = np.array([Ut_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81
 Qe_theta2 = np.array([np.linalg.norm(Qe_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0)) for q0 in q0GEBF])
 
 theta.tofile('theta.data')
-Ul_theta1.tofile('strainEnergyAxial1.data')
-Ul_theta2.tofile('strainEnergyAxial2.data')
-Ut_theta1.tofile('strainEnergyBending1.data')
-Ut_theta2.tofile('strainEnergyBending2.data')
-Qe_theta1.tofile('bodyForces1.data')
-Qe_theta2.tofile('bodyForces2.data')
+Ul_theta1.tofile('strainEnergyAxial1_2.data')
+Ul_theta2.tofile('strainEnergyAxial2_2.data')
+Ut_theta1.tofile('strainEnergyBending1_2.data')
+Ut_theta2.tofile('strainEnergyBending2_2.data')
+Qe_theta1.tofile('bodyForces1_2.data')
+Qe_theta2.tofile('bodyForces2_2.data')
