@@ -272,18 +272,18 @@ kappa_squared = (kappa.T*dHdx.T).dot(dHdx*kappa)
 Ut = 1/2*sym.integrate(E*I*kappa_squared, (x,0,l))
 
 # Longitudinal strain energy
-# epsilon_squared = (epsilon.T*dHdx.T).dot(dHdx*epsilon)
 
-G = E/2.6
+# G = E/2.6
 # C_big = sym.Matrix.vstack(sym.Matrix.hstack(C,sym.zeros(2)),sym.Matrix.hstack(sym.zeros(2), C))
 # R_interp_big = sym.Matrix.vstack(sym.Matrix.hstack(R_interp,sym.zeros(2)),
 #                                  sym.Matrix.hstack(sym.zeros(2), R_interp))
-C = sym.Matrix([[E*A, 0],[0, 5/6*G*A]])
-# epsilon = sym.Matrix(['0', u_ax[0], '0', u_ax[1]])
+# C = sym.Matrix([[E*A, 0],[0, 5/6*G*A]])
 epsilon = u_ax
+epsilon = sym.Matrix(['0', u_ax[0], '0', u_ax[1]])
+epsilon_squared = (epsilon.T*dHdx.T).dot(dHdx*epsilon)
 # Ul = 1/2*sym.integrate(epsilon.T*dHdx.T*R_interp*C*R_interp.T*dHdx*epsilon, (x,0,l))[0]
-Ul = 1/2*sym.integrate(epsilon.T*R_interp*C*R_interp.T*epsilon, (x,0,l))[0]
-# Ul = 1/2*sym.integrate(E*A*epsilon_squared, (x,0,l)) 
+# Ul = 1/2*sym.integrate(epsilon.T*R_interp*C*R_interp.T*epsilon, (x,0,l))[0]
+Ul = 1/2*sym.integrate(E*A*epsilon_squared, (x,0,l)) 
 
 # Compute Total Energy
 U = Ul + Ut
@@ -324,111 +324,20 @@ pickle.dump( beta, open( "gebf-force-vector.dump",  "wb" ) )
 pickle.dump( U,    open( "gebf-strain-energy.dump", "wb" ) )
 # pickle.dump(PE, open("potential_enrgy", "wb")) 
 
-
-# In[ ]:
-
-# M_sym    = pickle.load( open( "gebf-mass-matrix.dump",   "rb" ) )
-# beta_sym = pickle.load( open( "gebf-force-vector.dump",  "rb" ) )
-# U_sym    = pickle.load( open( "gebf-strain-energy.dump", "rb" ) )
-
-
-# In[ ]:
-
 M_func    = lambdify((E, A, I, r, rho, l, g, q),    M, "numpy")
 beta_func = lambdify((E, A, I, r, rho, l, g, q), beta, "numpy")
 U_func    = lambdify((E, A, I, r, rho, l, g, q),    U, "numpy")
-
-
-# In[ ]:
 
 # Debugging functions to trace source of error 
 Qe_func    = lambdify((E, A, I, r, rho, l, g, q),    Qe, "numpy")
 Fg_func    = lambdify((E, A, I, r, rho, l, g, q),    Fg, "numpy")
 Ut_func    = lambdify((E, A, I, r, rho, l, g, q),    Ut, "numpy")
 Ul_func    = lambdify((E, A, I, r, rho, l, g, q),    Ul, "numpy")
-# e2_func    = lambdify((E, A, I, r, rho, l, g, q), epsilon_squared, "numpy")
-
-
-# In[ ]:
 
 beta_num = beta_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, np.zeros_like(q))
 M_num    = M_func(   0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, np.zeros_like(q))
 U_num    = U_func(   0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, np.zeros_like(q))
 
-
-# In[ ]:
-
-M11 = np.array(M_num[0:3,0:3])
-M12 = np.array(M_num[0:3,3:6])
-M21 = np.array(M_num[3:6,0:3])
-M22 = np.array(M_num[3:6,3:6])
-
-# For now use these definitions to cast Fic (constraint forces between GEBF elements) 
-# into generalized constraint forces
-gamma11 = np.eye(3)
-gamma12 = np.zeros((3,3))
-gamma22 = np.eye(3)
-gamma21 = np.zeros((3,3))
-
-# partition beta into lambda13 and lambda23
-gamma13 = np.array(beta_num[0:3])
-gamma23 = np.array(beta_num[3:6])
-
-
-# Commonly inverted quantities
-iM11 = np.linalg.inv(M11)
-iM22 = np.linalg.inv(M22)
-Gamma1 = np.linalg.inv(M11 - M12.dot(iM22.dot(M21)))
-Gamma2 = np.linalg.inv(M22 - M21.dot(iM11.dot(M12)))
-
-# Compute all terms of the two handle equations
-z11 = Gamma1.dot(gamma11 - M12.dot(iM22.dot(gamma21)))
-z12 = Gamma1.dot(gamma12 - M12.dot(iM22.dot(gamma22)))
-z21 = Gamma2.dot(gamma21 - M21.dot(iM11.dot(gamma11)))
-z22 = Gamma2.dot(gamma22 - M21.dot(iM11.dot(gamma12)))
-
-z13 = Gamma1.dot(gamma13 - M12.dot(iM22.dot(gamma23))).reshape((3,1))
-z23 = Gamma2.dot(gamma23 - M21.dot(iM11.dot(gamma13))).reshape((3,1))
-
-
-# In[ ]:
-
-beta_num
-
-
-# In[ ]:
-
-#print(z13)
-#print()
-#print(z23)
-
-
-# In[ ]:
-
-# Qe_num = Qe_func(   0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0GEBF)
-# print('Qe = ')
-# print(Qe_num)
-# print()
-
-# Fg_num = Fg_func(   0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0GEBF)
-# print('Fg = ')
-# print(Fg_num)
-# print()
-
-# Ul_num = Ul_func(   0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0GEBF)
-# print('Axial Strain Energy = ')
-# print(Ul_num)
-# print()
-
-# Ut_num = Ut_func(   0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0GEBF)
-# print('Bending Strain Energy = ')
-# print(Ut_num)
-# print()
-
-# # e2_num = e2_func(   0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0GEBF)
-
-
-# In[ ]:
 
 theta = np.linspace(0,2*np.pi,200)
 q0GEBF = [np.array([theta,0,0,0,0,0]).reshape(6,1) for theta in theta]
@@ -444,9 +353,9 @@ Ut_theta2 = np.array([Ut_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81
 Qe_theta2 = np.array([np.linalg.norm(Qe_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0)) for q0 in q0GEBF])
 
 theta.tofile('theta.data')
-Ul_theta1.tofile('strainEnergyAxial1_2.data')
-Ul_theta2.tofile('strainEnergyAxial2_2.data')
-Ut_theta1.tofile('strainEnergyBending1_2.data')
-Ut_theta2.tofile('strainEnergyBending2_2.data')
-Qe_theta1.tofile('bodyForces1_2.data')
-Qe_theta2.tofile('bodyForces2_2.data')
+Ul_theta1.tofile('strainEnergyAxial1_0.data')
+Ul_theta2.tofile('strainEnergyAxial2_0.data')
+Ut_theta1.tofile('strainEnergyBending1_0.data')
+Ut_theta2.tofile('strainEnergyBending2_0.data')
+Qe_theta1.tofile('bodyForces1_0.data')
+Qe_theta2.tofile('bodyForces2_0.data')
