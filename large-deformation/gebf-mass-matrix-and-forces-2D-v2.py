@@ -64,9 +64,6 @@ def Rotate_sym(theta):
 
 
 # #### Define symbolic quantites
-
-# In[5]:
-
 # symbolic system parameters 
 E, G, I, A, rho, x, l, r, g  = sym.symbols('E G I A rho x l r g')
 
@@ -94,14 +91,7 @@ u = sym.Matrix([q[1:3,0], q[4:6,0]])
 udot = sym.Matrix([qdot[1:3,0], qdot[4:8,0]])
 uddot = sym.Matrix([qddot[1:3,0], qddot[4:6,0]])
 
-# display([q,qdot,qddot])
-# display([u,udot,uddot])
-
-
 # ### Needed Matrix Quantities
-
-# In[6]:
-
 """ 
 Some cheating here: 
 q0,q3 and q0dot,q3dot are really theta_1j, theta_2j and omega_1j, omega_2j
@@ -131,38 +121,20 @@ Omega_skew = sym.Matrix.vstack(sym.Matrix.hstack(omega1_skew,sym.zeros(2)),     
 
 # "spatial" angular acceleration matrix
 Alpha_skew = sym.Matrix.vstack(sym.Matrix.hstack(alpha1_skew,sym.zeros(2)),                                sym.Matrix.hstack(sym.zeros(2),alpha2_skew))
-# display(Omega)
 
 
 # ### Define Kinematics
-
-# In[7]:
-
-# Define position of element endpoints (nodes)
-# x0 = 0 y0 = 0 x0_vec = [0,0]
-
 # Define Locations of Centroid of nodes
 X0 = sym.Matrix(['0','0','l','0'])
 rp = sym.simplify(X0 + u + R*s)
 
-# print('r = ')
-# display(rp)
-
 # Define velocity of element endpoints (nodes)
 v = sym.simplify(udot + R*Omega_skew*s)
-# print('v = ')
-# display(v)
 
 # Define acceleration of element endpoints (nodes)
 a = sym.simplify(uddot + R*Omega_skew*Omega_skew*s + R*Alpha_skew*s)
-# print('\na = ')
-# display(a)
-
 
 # ### Compute the Mass Matrix
-
-# In[8]:
-
 # Define shape function for element with one node at each end
 h = sym.symarray('h', 2)
 
@@ -171,30 +143,19 @@ h[1] = sym.Rational(1,2)*(1 + x)
 
 # Compute shape function matrix
 H = sym.Matrix([h[0]*sym.eye(2), h[1]*sym.eye(2)]).T
-# print('\nH = ')
-# display(H)
+dHdx = H.diff(x)
 
 # Define velocity of any point 
 Rp = H*rp
-# print('\nR = ')
-# display(Rp)
 
 # Define velocity of any point 
 Vp = H*v
-# print('\nV = ')
-# display(Vp)
 
 # Define velocity of any point 
 Ap = H*a
-# print('\nA = ')
-# display(Accel)
 
 # Compute partial velocities of the nodes
 Vr = sym.simplify(sym.Matrix([[sym.diff(Vp,qdot) for Vp in Vp] for qdot in qdot]).T)
-# v_r = H
-# print('\nVr = ')
-# display(Vr)
-# print(Vr.shape)
 
 # Compute mass matrix
 M = sym.simplify(sym.factor(sym.Matrix(
@@ -202,88 +163,47 @@ M = sym.simplify(sym.factor(sym.Matrix(
               for i in range(len(qddot))] for j in range(len(qddot))])))
 
 
-# In[9]:
-
-# # print('\nM = \n')
-# # display(M)
-
-# print('M_11 = ')
-# display(M[0:3,0:3])
-# print('\nM_22 = ')
-# display(M[3:6,3:6])
-# print('\nM_12 = ')
-# display(M[0:3,3:6])
-# print('\nM_21.T = ')
-# display(M[3:6,0:3].T)
-
 
 # ### Compute Internal forces 
-
 # #### 1. Transverse (Bending) Strain
-
-# In[10]:
 
 # Orthogonal Matricies Not Extracted to Simplify Algebra
 R_interp = sym.simplify(H*sym.Matrix([R1,R2]))
 dT = sym.simplify(H.diff(x)*sym.Matrix([R1,R2]))
 kappa = sym.simplify(sym.Matrix([Axial_sym(dT*R_interp.T),'0','0','0']))
-# display(kappa)
-
-
-# In[11]:
-
-R_interp
-
 
 # #### 2. Longitudinal (Axial) Strian
-
-# In[12]:
-
-# Define Locations of Centroid 
-x0 = sym.Matrix(['x','0'])
+# Define Locations of Centroid
+x0_B = sym.Matrix(['x','0'])
+x0 = R_interp*x0_B
 
 # Define Newtonian Unit Vector x-dir
 n1 = sym.Matrix(['1','0'])
 
 # Interpolate Displacemnts
-u_int = H*u
+u_terp = H*u
 
 # Derivatives w.r.t longitudinal beam coordinate
-du = u_int.diff(x)
+du = u_terp.diff(x)
 dx0 = x0.diff(x)
 
 # Compute axial strain
-u_ax = dx0 + du - R_interp*n1
+u_ax = (dx0 + du - R_interp*n1).simplify()
+epsilon = sym.Matrix(['0', u_ax[0], '0', u_ax[1]])
+# epsilon = u_ax
 # display(epsilon)
 
-
 # #### 3. Compute Internal Forces $Q_e = -\frac{\partial U}{\partial e}$
-
-# In[ ]:
-
 """
 Note: Sympy bug! Integrating a matrix returns a vector!!!
 """
-# derivative of shapefunction matrix
-dHdx = H.diff(x)
-
 # Transverse strain energy
 kappa_squared = (kappa.T*dHdx.T).dot(dHdx*kappa)
 Ut = 1/2*sym.integrate(E*I*kappa_squared, (x,0,l))
 
-# Longitudinal strain energy
-
-# G = E/2.6
-# C_big = sym.Matrix.vstack(sym.Matrix.hstack(C,sym.zeros(2)),sym.Matrix.hstack(sym.zeros(2), C))
-# R_interp_big = sym.Matrix.vstack(sym.Matrix.hstack(R_interp,sym.zeros(2)),
-#                                  sym.Matrix.hstack(sym.zeros(2), R_interp))
-# C = sym.Matrix([[E*A, 0],[0, 5/6*G*A]])
-epsilon = u_ax
-epsilon = sym.Matrix(['0', u_ax[0], '0', u_ax[1]])
-epsilon_squared = (epsilon.T*dHdx.T).dot(dHdx*epsilon)
-# Ul = 1/2*sym.integrate(epsilon.T*dHdx.T*R_interp*C*R_interp.T*dHdx*epsilon, (x,0,l))[0]
-# Ul = 1/2*sym.integrate(epsilon.T*R_interp*C*R_interp.T*epsilon, (x,0,l))[0]
-Ul = 1/2*sym.integrate(E*A*epsilon_squared, (x,0,l)) 
+G = E/2.6
+C = sym.Matrix([[E*A, 0],[0, 5/6*G*A]])
+Ul = 1/2*sym.integrate(epsilon.T*dHdx.T*R_interp*C*R_interp.T*dHdx*epsilon, (x,0,l))[0]
 
 # Compute Total Energy
 U = Ul + Ut
@@ -292,14 +212,7 @@ U = Ul + Ut
 Qe = sym.Matrix([sym.simplify(sym.expand(-sym.diff(U,qi))) for qi in q])
 
 
-# In[ ]:
-
-
-
-
 # ####4. Applied and body force vector
-
-# In[ ]:
 
 # Applied forces
 # Gravity body force
@@ -315,9 +228,6 @@ beta = sym.Matrix([sym.simplify(sym.integrate(Vr[:,j].dot(fg),('r_2',0,r),('r_3'
 # Just for debugging purposes
 Fg = sym.Matrix([sym.simplify(sym.integrate(Vr[:,j].dot(fg),('r_2',0,r),('r_3',0,r),(x,0,l)))
                    for j in range(len(q))])
-
-
-# In[ ]:
 
 pickle.dump( M,    open( "gebf-mass-matrix.dump",   "wb" ) )
 pickle.dump( beta, open( "gebf-force-vector.dump",  "wb" ) )
@@ -353,9 +263,9 @@ Ut_theta2 = np.array([Ut_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81
 Qe_theta2 = np.array([np.linalg.norm(Qe_func(0.7e6, 0.0018, 1.215e-8, 0.02393, 5540, 0.12, 9.81, q0)) for q0 in q0GEBF])
 
 theta.tofile('theta.data')
-Ul_theta1.tofile('strainEnergyAxial1_0.data')
-Ul_theta2.tofile('strainEnergyAxial2_0.data')
-Ut_theta1.tofile('strainEnergyBending1_0.data')
-Ut_theta2.tofile('strainEnergyBending2_0.data')
-Qe_theta1.tofile('bodyForces1_0.data')
-Qe_theta2.tofile('bodyForces2_0.data')
+Ul_theta1.tofile('strainEnergyAxial1_3.data')
+Ul_theta2.tofile('strainEnergyAxial2_3.data')
+Ut_theta1.tofile('strainEnergyBending1_3.data')
+Ut_theta2.tofile('strainEnergyBending2_3.data')
+Qe_theta1.tofile('bodyForces1_3.data')
+Qe_theta2.tofile('bodyForces2_3.data')
