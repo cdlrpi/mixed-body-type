@@ -111,13 +111,8 @@ class GEBF_Element2D(Body):
 
     def intProps(self, args):
        
-        # u's are deformations not generalized speeds
-        u = args[0]
-
-        # Some cheating going on here with the kinematics and "position" vector 
-        # q_e is the "positions" with q0,q3 = sum(q0j), sum(q3j) (j = 1 ... nbodies)
-        # self.theta1 and self.theta2 are updated in the kinematic sweep
-        q = [self.theta1] + u[:2] + [self.theta2] + u[2:]        
+        # input generalized coordinates
+        q = args[0]
 
         M = self.M(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q)
         beta = self.beta(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q,)

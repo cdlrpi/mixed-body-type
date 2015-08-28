@@ -41,11 +41,8 @@ def get_topology_2DGEBF(q,r0,nelements,npoints):
     displacements = np.delete(q,range(0,len_q,3),1)
     
     # compute position of each node
-    position = np.vstack((r0,displacements))
-    position = np.cumsum(position,0)
-    
+    position = r0 + displacements
     position_element = np.array_split(position,nelements,axis=1)
-    
     
     # interpolate 
     x = np.linspace(-1,1,npoints)
@@ -176,7 +173,7 @@ def kinematics_Rigid2D(bodies,q,u):
             
 def kinematics_GEBF2D(bodies,q,u):
     """
-    This function determines the kinematics of a 2D gebf pendulum
+    This function needs to be fixed and simply update the kinematics between elements
     """
     # slice state into 'qs' for each element 
     thetae = q[::3]
