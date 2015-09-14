@@ -99,23 +99,24 @@ class GEBF_Element2D(Body):
 
         q = sym.Matrix(sym.symarray('q',6))
         E, A, I, r, rho, l, g = sym.symbols('E A I r rho l g')
-
+        theta = sym.Matrix(['theta_1','theta_2'])
         
         # This makes self.M a function that returns the numeric mass matrix
         M_sym = pickle.load( open( "gebf-mass-matrix.dump", "rb" ) )
-        self.M = lambdify((E, A, I, r, rho, l, g, q),    M_sym, "numpy")
+        self.M = lambdify((E, A, I, r, rho, l, g, q, theta),    M_sym, "numpy")
 
         # This makes self.beta a function that returns the numeric body froce vector
         beta_sym = pickle.load( open( "gebf-force-vector.dump", "rb" ) )
-        self.beta = lambdify((E, A, I, r, rho, l, g, q), beta_sym, "numpy")
+        self.beta = lambdify((E, A, I, r, rho, l, g, q, theta), beta_sym, "numpy")
 
     def intProps(self, args):
        
         # input generalized coordinates
-        q = args[0]
+        q     = args[0]
+        theta = np.array([q[0],q[0]+q[3]])
 
-        M = self.M(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q)
-        beta = self.beta(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q,)
+        M = self.M(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta)
+        beta = self.beta(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta)
 
         # Form the binary-DCA algebraic quantities
         # Partition mass matrix
