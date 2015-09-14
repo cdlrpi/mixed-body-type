@@ -11,74 +11,40 @@
 \newcommand{\ubar}[1]{\underaccent{\bar}{#1}}
 
 \begin{document}
-\section*{Kinematics of Geometrically Exact Beams}
+\section*{Kinematics of Geometrically Exact Beams Undergoing Large Deformations}
 
-% Using the coordinate $\alpha_{1}$ as the location of a rigid cross-section of the beam along the beam's centerline and $\alpha_{2} \ \& \ \alpha_{3}$ as the coordinates that locate a point in the cross section from the centerline, the position of any point ($\vec{x}_{p}$) in the beam can be described as
-% \begin{align}
-%   \left\{ \vec{x}_{p} \right\}_{N} =& \left\{ \vec{x} \right\}_{N} + 
-%   \label{pos}
-%   \end{align}
-% 
-% . \\ 
-The position of any point ($\vec{x}$) on a flexible beam may be described in terms of the location ($\alpha_{1}$) of a rigid cross-section in the undeformed configuration ( $\vec{x}_{0}\left( \alpha_{1} \right)$ ) and its translation under deformation ( $\vec{u}\left( \alpha_{1} \right)$ ) expressed in the inertial (Newtonian) reference frame ($N$) as 
+The large-deformation of a flexible beam may be decomposed into the deformation of the neutral axis of the beam and the rotation of the cross-section of the beam at any point along the neutral axis.  The position of any point ($\vec{r}^{P}$) on a flexible beam may be described by locating the centroid of a rigid-cross section $\left( \vec{r}_{0} \right)$ in the undeformed configuration, the deformation vector of the centroid $\left( \vec{\Delta} \right)$, and the location of the point in the cross-section $\left( \vec{s} \right)$.  The resulting vector is expressed in the Newtonian frame as    
 \begin{align}
-  \left\{\vec{x}\right\}_{N} =& \left\{\vec{x_{0}}\right\}_{N} + \left\{\vec{u}\right\}_{N}
-  \label{<++>}
-  \end{align}<++>
+  \left\{ \vec{r}^{P} \right\}_{N} =& \ \left\{ \vec{r}_{0} \right\}_{N} 
+  +  \left\{ \vec{\Delta} \right\}_{N}
+  +  \left\{ \vec{s} \right\}_{N} \ .
+  \label{}
+\end{align}
+If $x$ is the coordinate along the beam axis, then
+\begin{align}
+  \left\{ \vec{r}_{0} \right\}_{B}  &= 
+  \begin{Bmatrix} x\\0 \end{Bmatrix} 
+  \shortintertext{and}
+  \left\{ \vec{r}_{0} \right\}_{N} &= ^{N}\mathbf{R}^{B_{0}}\left\{ \vec{r}_{0} \right\}_{B} \ ,
+  \label{}
+\end{align}
+where $^{N}\mathbf{R}^{B_{0}}$ rotates the beam-basis of the reference configuration to the Newtonian basis.  Additionally 
+\begin{align}
+  \left\{ \vec{s} \right\}_{N} = ^{N}\mathbf{R}^{B}\left\{ \vec{s} \right\}_{B} \ ,
+  \label{}
+\end{align}
+where $^{N}\mathbf{R}^{B}$ rotates the beam-basis of the deformed configuration (cross-section after rotation from the starting configuration)  to the Newtonian basis.\\
 
-
-From equation~(16.43) of \textit{Flexible Multibody Dynamics}, \begin{align}
-  \vec{X}\left( \alpha_{1}, \alpha_{2}, \alpha_{3} \right)  
-  &= \vec{X}_{0} + w_{1}\bar{B}_{1} + \left( w_{2} + \alpha_{2} \right)\bar{B}_{2}
-  + \left( w_{3} + \alpha_{3} \right)\bar{B}_{3}
-  \label{eq:1643}
-\end{align}
-the displacement of any point on the beam may be written as 
+The velocity of any point $\left( \vec{v}_{P} \right)$ can be determined by differentiating $\vec{r}^{P}$ as
 \begin{align}
-  \left\{ \vec{X}\left( \alpha_{1}, \alpha_{2}, \alpha_{3} \right) \right\}_{I}  
-  &= \left\{ \vec{x}_{0} \right\}_{I} 
-  + \left\{ \vec{u} \right\}_{I} 
-  + \left( \ubar{\ubar{R}} \ubar{\ubar{R}}_{0} \right) 
-  \left( \left\{ \vec{w} \right\}_{I} + \alpha_{2} \hat{i}_{2} + \alpha_{3} \hat{i}_{3} \right),
-  \label{eq:deformation}
-\end{align}
-which is given by equation~(16.44) of \textit{Flexible Multibody Dynamics}.  In Eq.~\eqref{eq:deformation}, the subscripts $B$ denotes vector quantities expressed in the material basis and the subscript $I$ denotes quantities expressed in the inertial basis.  To obtain the velocity of any point on the beam the time derivative of Eq~\eqref{eq:deformation} is taken, resulting in
-\begin{align}
-  \frac{d}{dt}\left\{ \vec{X}\left( \alpha_{1}, \alpha_{2}, \alpha_{3} \right) \right\}_{I}  
-  &= \frac{d}{dt} \left\{ \vec{x}_{0} \right\}_{I} 
-  + \frac{d}{dt} \left\{ \vec{u} \right\}_{I} 
-  + \frac{d}{dt} \left\{ \ubar{\ubar{R}} \ubar{\ubar{R}}_{0} \right\}
-  \left( \left\{ \vec{w} \right\}_{I} + \alpha_{2} \hat{i}_{2} + \alpha_{3} \hat{i}_{3} \right).
-  \label{eq:DdefDt}
-\end{align}
-% if the contribution of the warp $\left( \vec{w} \right)$ is neglected.
-%and because there is no change of the reference configuration with respect to the inertial frame $\left( \frac{d}{dt} \left\{ \ubar{\ubar{R}}_{0} \right\} = 0 \right)$.  
-
-After simplification the velocity of any point on the beam can be expressed as  
-\begin{align}
-  \left\{ \vec{v} \right\}_{I} 
-  &= \left\{ \dot{ \vec{u}}\right\}_{I} 
-  + \ubar{\ubar{\dot{R}}}\ubar{\ubar{R}}_{0} 
-  \left( \vec{0} + \alpha_{2} \hat{i}_{2} + \alpha_{3} \hat{i}_{3} \right) \ ,
-\end{align}
-if the contribution of the warp vector is neglected.  This equation can be further simplified as follows: 
-\begin{align}
-  \left\{ \vec{v} \right\}_{I}  
-  &= \left\{ \dot{ \vec{u}}\right\}_{I} 
-  +  \ubar{\ubar{\dot{R}}} \ubar{\ubar{R}}_{0} 
-  \underbrace{\left( \vec{0} + \alpha_{2} \hat{i}_{2} 
-  + \alpha_{3} \hat{i}_{3} \right)}_{\left\{ \vec{s} \right\}_{I}}, \\
-  \left\{ \vec{v} \right\}_{I} 
-  &=  \left\{ \dot{ \vec{u}}\right\}_{I} 
-  +  \ubar{\ubar{\dot{R}}} \ubar{\ubar{R}}_{0} \left\{ \vec{s} \right\}_{I}.
+  \left\{ \vec{v}_{P} \right\}_{N} &= \frac{d}{dt} \left\{ \vec{r}^{P} \right\}_{N}  
+  = \underbrace{\frac{d}{dt} \left\{ \vec{r}_{0} \right\}_{N}}_{0} 
+  + \frac{d}{dt} \left\{ \vec{\Delta} \right\}_{N} 
+  + \frac{d}{dt} \left\{ ^{N}\mathbf{R}^{B} \right\} \left\{ \vec{s} \right\}_{B}\\
+  &= \left\{ \dot{ \vec{\Delta}}\right\}_{N}  + ^{N}\dot{\mathbf{R}}^{B}  \left\{ \vec{s} \right\}_{B}
   \label{eq:velocity1}
-\end{align}
+  \end{align}
 
-Equation~\eqref{eq:velocity1} agrees with equation~(16.52) of \textit{Flexible Multibody Dynamics}, which is
-\begin{align}
-  \ubar{v} = \ubar{\dot{u}} + \ubar{\ubar{\dot{R}}} \ubar{\ubar{R}}_{0} \ubar{s}^{*}
-  \label{eq:16521}
-\end{align}
 If Eq.~\eqref{eq:velocity1} is then left multiplied by the identity and the identity is then replaced with $\ubar{\ubar{R}}\ubar{\ubar{R}}^{T}$, the skew-symmetric angular velocity matrix can be extracted from the above expression as follows:
 \begin{align}
   \left\{ \vec{v} \right\}_{I} 
