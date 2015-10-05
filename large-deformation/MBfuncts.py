@@ -29,7 +29,7 @@ def get_topology_2DRigid(q,l):
 
     return x,y
     
-def get_topology_2DGEBF(q,r0,nelements,npoints):
+def get_topology_2DGEBF(q,r0,l,nelements,npoints):
     """
     This function determines the positions of all the nodes of the gebf elements of the system. 
     """
@@ -46,8 +46,8 @@ def get_topology_2DGEBF(q,r0,nelements,npoints):
     
     # interpolate 
     x = np.linspace(-1,1,npoints)
-    h1 = (1/2)*(1 - x)
-    h2 = (1/2)*(1 + x)
+    h1 = (1 - x/l)
+    h2 = (x/l)
 
     # Compute shape function matrix
     H = np.array([np.hstack((h1*np.eye(2), h2*np.eye(2))) 
