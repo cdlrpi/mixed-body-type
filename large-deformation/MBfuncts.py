@@ -45,9 +45,9 @@ def get_topology_2DGEBF(q,r0,l,nelements,npoints):
     position_element = np.array_split(position,nelements,axis=1)
     
     # interpolate 
-    x = np.linspace(-1,1,npoints)
-    h1 = (1 - x/l)
-    h2 = (x/l)
+    s = np.linspace(-1,1,npoints)
+    h1 = 1/2*(1 - s)
+    h2 = 1/2*(1 + s)
 
     # Compute shape function matrix
     H = np.array([np.hstack((h1*np.eye(2), h2*np.eye(2))) 
@@ -173,18 +173,19 @@ def kinematics_Rigid2D(bodies,q,u):
             
 def kinematics_GEBF2D(bodies,q,u):
     """
-    This function needs to be fixed and simply update the kinematics between elements
+    Needs fixing !!!!!!!!!!!!!!!!!!!!!!
     """
-    # slice state into 'qs' for each element 
-    thetae = q[::3]
-    theta = np.cumsum(thetae)
+    #  # slice state into 'qs' for each element 
+    #  thetae = q[::3]
+    #  theta = np.cumsum(thetae)
 
-    # slice into the two rotational coordinates for each body
-    theta1 = theta[0::2]
-    theta2 = theta[1::2]
-    for body,q0,q3 in zip(bodies, theta1, theta2):
-        body.theta1 = q0
-        body.theta2 = q3
+    #  # slice into the two rotational coordinates for each body
+    #  theta1 = theta[0::2]
+    #  theta2 = theta[1::2]
+    #  for body,q0,q3 in zip(bodies, theta1, theta2):
+    #      body.theta1 = q0
+    #      body.theta2 = q3
+    raise Exception('Fix me!!!!')
 
 def myRK4(func, state0, tspan, *args):
     """
