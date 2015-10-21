@@ -1,0 +1,158 @@
+%        File: kinematics.tex
+%     Created: Tue Jul 08 04:00 PM 2014 E
+% Last Change: Tue Jul 08 04:00 PM 2014 E
+
+\documentclass[a4paper]{article}
+\usepackage{amsmath}
+\usepackage{accents}
+\usepackage{mathtools}
+\usepackage{isomath}
+
+\newcommand{\ubar}[1]{\underaccent{\bar}{#1}}
+
+\begin{document}
+\section*{Kinematics of a Highly-Flexible Beam}
+
+From equation~(16.43) of \textit{Flexible Multibody Dynamics}, \begin{align}
+  \vec{X}\left( \alpha_{1}, \alpha_{2}, \alpha_{3} \right)  
+  &= \vec{X}_{0} + w_{1}\bar{B}_{1} + \left( w_{2} + \alpha_{2} \right)\bar{B}_{2}
+  + \left( w_{3} + \alpha_{3} \right)\bar{B}_{3}
+  \label{eq:1643}
+\end{align}
+the displacement of any point on the beam may be written as 
+\begin{align}
+  \left\{ \vec{X}\left( \alpha_{1}, \alpha_{2}, \alpha_{3} \right) \right\}_{I}  
+  &= \left\{ \vec{x}_{0} \right\}_{I} 
+  + \left\{ \vec{u} \right\}_{I} 
+  + \left( \ubar{\ubar{R}} \ubar{\ubar{R}}_{0} \right) 
+  \left( \left\{ \vec{w} \right\}_{I} + \alpha_{2} \hat{i}_{2} + \alpha_{3} \hat{i}_{3} \right),
+  \label{eq:deformation}
+\end{align}
+which is given by equation~(16.44) of \textit{Flexible Multibody Dynamics}.  In Eq.~\eqref{eq:deformation}, the subscripts $B$ denotes vector quantities expressed in the material basis and the subscript $I$ denotes quantities expressed in the inertial basis.  To obtain the velocity of any point on the beam the time derivative of Eq~\eqref{eq:deformation} is taken, resulting in
+% \begin{align}
+%   \frac{d}{dt}\left\{ \vec{X}\left( \alpha_{1}, \alpha_{2}, \alpha_{3} \right) \right\}_{I}  
+%   &= \frac{d}{dt} \left\{ \vec{x}_{0} \right\}_{I} 
+%   + \frac{d}{dt} \left\{ \vec{u} \right\}_{I} 
+%   + \frac{d}{dt} \left\{ \ubar{\ubar{R}} \ubar{\ubar{R}}_{0} \right\}
+%   \left( \left\{ \vec{w} \right\}_{I} + \alpha_{2} \hat{i}_{2} + \alpha_{3} \hat{i}_{3} \right), 
+%   \label{eq:DdefDt}
+% \end{align}
+% if the contribution of the warp $\left( \vec{w} \right)$ is neglected.
+% %and because there is no change of the reference configuration with respect to the inertial frame $\left( \frac{d}{dt} \left\{ \ubar{\ubar{R}}_{0} \right\} = 0 \right)$.  
+% 
+% After simplification the the velocity of any point on the beam can be expressed as  
+\begin{align}
+  \left\{ \vec{v} \right\}_{I} 
+  &= \left\{ \dot{ \vec{u}}\right\}_{I} 
+  + \ubar{\ubar{\dot{R}}}\ubar{\ubar{R}}_{0} 
+  \left( \vec{0} + \alpha_{2} \hat{i}_{2} + \alpha_{3} \hat{i}_{3} \right) 
+\end{align}
+after application of the chain rule, if the contribution of the warp $\left( \vec{w} \right)$ is neglected.
+This equation can be further simplified as follows: 
+\begin{align}
+  \left\{ \vec{v} \right\}_{I}  
+  &= \left\{ \dot{ \vec{u}}\right\}_{I} 
+  +  \ubar{\ubar{\dot{R}}} \ubar{\ubar{R}}_{0} 
+  \underbrace{\left( \vec{0} + \alpha_{2} \hat{i}_{2} 
+  + \alpha_{3} \hat{i}_{3} \right)}_{\left\{ \vec{s} \right\}_{I}}, \\
+  &=  \left\{ \dot{ \vec{u}}\right\}_{I} 
+  +  \ubar{\ubar{\dot{R}}} \ubar{\ubar{R}}_{0} \left\{ \vec{s} \right\}_{I}.
+  \label{eq:velocity1}
+\end{align}
+
+Equation~\eqref{eq:velocity1} agrees with equation~(16.52) of \textit{Flexible Multibody Dynamics}, which is
+\begin{align}
+  \ubar{v} = \ubar{\dot{u}} + \ubar{\ubar{\dot{R}}} \ubar{\ubar{R}}_{0} \ubar{s}^{*}
+  \label{eq:16521}
+\end{align}
+If Eq.~\eqref{eq:velocity1} is then left multiplied by the identity and the identity is then replaced with $\ubar{\ubar{R}}\ubar{\ubar{R}}^{T}$, the skew-symmetric angular velocity matrix can be extracted from the above expression as follows:
+\begin{align}
+  \left\{ \vec{v} \right\}_{I} 
+  &=  \left\{ \dot{ \vec{u}}\right\}_{I}
+  + \ubar{\ubar{I}} \ubar{\ubar{\dot{R}}} \ubar{\ubar{R}}_{0} \left\{ \vec{s} \right\}_{I}  \\
+  &=  \left\{ \dot{ \vec{u}}\right\}_{I} + \ubar{\ubar{R}} 
+  \underbrace{\ubar{\ubar{R}}^{T} \ubar{\ubar{\dot{R}}}}_{\left\{^{b}\tilde{\omega}^{B}\right\}_{BB}} \ubar{\ubar{R}}_{0} \left\{ \vec{s} \right\}_{I}  \\
+  &= \left\{ \dot{ \vec{u}}\right\}_{I}
+  + \ubar{\ubar{R}} \left\{ ^{b}\tilde{\omega}^{B} \right\}_{BB} \ubar{\ubar{R}}_{0}  \left\{ \vec{s} \right\}_{I},
+\end{align}
+% This results in an expression of the velocity of any point as a function of the time rate of change of the deformation vector and the angular velocity of the beam cross section as   
+% \begin{align}
+%   \left\{ \vec{v} \right\}_{I}
+%   &= \left\{ \dot{ \vec{u}}\right\}_{I}
+%   + \ubar{\ubar{R}} \left\{ ^{b}\tilde{\omega}^{B} \right\}_{B} \ubar{\ubar{R}}_{0}  \left\{ \vec{s} \right\}_{I},
+%   \label{eq:velocitysimp}
+% \end{align}
+where $\left\{ ^{b}\tilde{\omega}^{B} \right\}_{BB}$ denotes the skew-symmetric angular velocity matrix of the material frame ($B$) with respect to the reference frame ($b$), expressed in the material basis ($B$).  Additionally, since $ \ubar{\ubar{R}}_{0}$ is constant, $^{I}\tilde{\omega}^{b} = 0$.  Therefore, 
+\begin{align}
+  ^{I}\tilde{\omega}^{B} &= \ \underbrace{^{I}\tilde{\omega}^{b}}_{0} + ^{b}\tilde{\omega}^{B}.
+\end{align}
+Thus, the expression for velocity becomes
+\begin{align}
+  \left\{ \vec{v} \right\}_{I} 
+  &= \left\{ \dot{ \vec{u}}\right\}_{I}
+  + \ubar{\ubar{R}} \left\{ ^{I}\tilde{\omega}^{B} \right\}_{BB} \ubar{\ubar{R}}_{0}  \left\{ \vec{s} \right\}_{I} \ .
+  \label{eq:velocitysimp}
+\end{align}
+
+Equation~\eqref{eq:velocitysimp} is different from the simplification given also in equation~(16.52) of \textit{Flexible Multibody Dynamics}, which is
+\begin{align}
+  \ubar{v} &= \ubar{\dot{u}} + \ubar{\ubar{R}} \ubar{\ubar{R}}_{0} \tilde{\omega}^{*}s^{*}.
+  \label{eq:16522}
+\end{align}
+
+An alternate derivation can yield a similar result to Eq.~\eqref{eq:16522}, but will not result in an expression matching Eq.~\eqref{eq:16521}.  This is accomplished by replacing the product of the rotation matrices associated with the transformation from the reference configuration to the material configuration $\left( \ubar{\ubar{R}} \right)$ and the transformation from the inertial frame to the reference configuration $\left( \ubar{\ubar{R}}_{0} \right)$ can be replaced by a single matrix $\left( ^{I}\ubar{\ubar{R}}^{B} = \ubar{\ubar{R}}\ubar{\ubar{R}}_{0} \right)$.  The time derivative of the position of any point on the deformable beam can then be written as
+% \begin{align}
+%   \frac{d}{dt}\left\{ \vec{X}\left( \alpha_{1}, \alpha_{2}, \alpha_{3} \right) \right\}_{I}  
+%   &= \frac{d}{dt} \left\{ \vec{x}_{0} \right\}_{I} 
+%   + \frac{d}{dt} \left\{ \vec{u} \right\}_{I} 
+%   + \frac{d}{dt} \left\{ \ubar{\ubar{R}}_{BI} \right\}
+%   \left( \left\{ \vec{w} \right\}_{I} + \alpha_{2} \hat{i}_{2} + \alpha_{3} \hat{i}_{3} \right), 
+%   \label{eq:DdefDt2}
+% \end{align}
+% again neglecting the warp.  
+% 
+% With a similar simplification, the velocity of any point on the beam can be expressed as  
+% \begin{align}
+%   \left\{ \vec{v} \right\}_{I} 
+%   &= \left\{ \dot{ \vec{u}}\right\}_{I} 
+%   + \ubar{\ubar{\dot{R}}}_{BI} 
+%   \left( \vec{0} + \alpha_{2} \hat{i}_{2} + \alpha_{3} \hat{i}_{3} \right) \ ,
+%   \label{eq:velocity}
+% \end{align}
+% This equation can be further simplified as follows: 
+\begin{align}
+%   \left\{ \vec{v} \right\}_{I} 
+%   &= \left\{ \dot{ \vec{u}}\right\}_{I} 
+%   + \ubar{\ubar{\dot{R}}}_{BI} 
+%   \underbrace{\left( \vec{0} + \alpha_{2} \hat{i}_{2} 
+%   + \alpha_{3} \hat{i}_{3} \right)}_{\left\{ \vec{s} \right\}_{I}}, \\
+  \left\{ \vec{v} \right\}_{I} 
+  &=  \left\{ \dot{ \vec{u}}\right\}_{I}
+  + \  ^{I}\ubar{\ubar{\dot{R}}}^{B} \left\{ \vec{s} \right\}_{I}.
+\end{align}
+again neglecting the contribution of the warp.  Again inserting the identity allows the skew-symmetric angular velocity matrix to be isolated in the expression for velocity of any point as follows 
+%By left multiplying by the identity and replacing it with $\ubar{\ubar{R}}_{BI}\ubar{\ubar{R}}_{BI}^{T}$, the skew-symmetric angular velocity matrix can be extracted from the above expression as follows:
+% \begin{align}
+%   \left\{ \vec{v} \right\}_{I} 
+%   &=  \left\{ \dot{ \vec{u}}\right\}_{I}
+%   + \ \ubar{\ubar{I}} \ ^{I}\ubar{\ubar{\dot{R}}}^{B} \left\{ \vec{s} \right\}_{I}  \ , \\
+%   \left\{ \vec{v} \right\}_{I} 
+%   &=  \left\{ \dot{ \vec{u}}\right\}_{I}
+%   + \ ^{I}\ubar{\ubar{R}}^{B} \underbrace{\left( ^{I}\ubar{\ubar{R}}^{B} \right)^{T} ^{I}\ubar{\ubar{\dot{R}}}^{B}}_{\left\{ ^{I}\tilde{\omega}^{B} \right\}_{B}} \left\{ \vec{s} \right\}_{I}  \ , \\
+%   \left\{ \vec{v} \right\}_{I} 
+%   &= \left\{ \dot{ \vec{u}}\right\}_{I}
+%   + \ ^{I}\ubar{\ubar{R}}^{B} \left\{ ^{I}\tilde{\omega}^{B} \right\}_{BB} \left\{ \vec{s} \right\}_{I}  \ . 
+% \end{align}
+This results in an expression of the velocity of any point as a function of the time rate of change of the deformation vector and the angular velocity of the beam element as   
+\begin{align}
+  \left\{ \vec{v} \right\}_{I}
+  &= \left\{ \dot{ \vec{u}}\right\}_{I}
+  + \ubar{\ubar{R}} \ubar{\ubar{R}}_{0} \left\{ ^{I}\tilde{\omega}^{B} \right\}_{BB} \left\{ \vec{s} \right\}_{I}.
+  \label{eq:velocitysimp2}
+\end{align}
+
+This equation does agree with Eq.~\eqref{eq:16522}.  Also if the angular velocity matrix in Eq.~\eqref{eq:velocitysimp} replaced with $\ubar{\ubar{R}}_{0} \ ^{I}\tilde{\omega}^{B} \ \ubar{\ubar{R}}_{0}^{T}$, then the two equations agree.  However, there is no real justification for this, which seems to suggest that I am missing something, or perhaps my understanding of the problem description is incorrect.  
+%For example, $\ubar{\ubar{\dot{R}}}_{BI}$ may not necissarily be equal to $\ubar{\ubar{\dot{R}}} \ubar{\ubar{R}}_{0}$, which may account for the descrepancy between Eq.~\eqref{eq:velocitysimp} and Eq.~\eqref{eq:16522}.  However, this would mean that my understanding of the reference configuration ($b_{i}$), which is that it is not moving, would be incorrect. \\ 
+\\ \\
+Any advice would be greatly appreciated!  
+\end{document}
