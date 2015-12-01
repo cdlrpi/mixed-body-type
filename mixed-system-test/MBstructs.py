@@ -138,8 +138,8 @@ class GEBF_Element2D(Body):
         # For now use these definitions to cast Fic (constraint forces between GEBF elements) 
         # into generalized constraint forces
         gamma11 = Gamma1[0:3,:]
-        gamma12 = Gamma1[3:6,:]
-        gamma21 = Gamma2[0:3,:]
+        gamma21 = Gamma1[3:6,:]
+        gamma12 = Gamma2[0:3,:]
         gamma22 = Gamma2[3:6,:]
 
         # partition beta into lambda13 and lambda23

@@ -107,6 +107,7 @@ class GEBF_Element2D(Body):
         beta_sym   = pickle.load( open( "gebf-force-vector.dump", "rb" ) )
         Gamma1_sym = pickle.load( open( "gebf-1c-matrix.dump",    "rb" ) )
         Gamma2_sym = pickle.load( open( "gebf-2c-matrix.dump",    "rb" ) )
+        PE         = pickle.load( open( "potential_enrgy.dump",   "rb" ) )
 
         # Create numeric function of needed matrix and vector quantities
         # this is MUCH MUCH faster than .subs()
@@ -115,6 +116,7 @@ class GEBF_Element2D(Body):
         self.beta   = lambdify((E, A, I, r, rho, l, g, q, theta, omega),   beta_sym, "numpy")
         self.Gamma1 = lambdify((E, A, I, r, rho, l, g, q, theta, omega), Gamma1_sym, "numpy")
         self.Gamma2 = lambdify((E, A, I, r, rho, l, g, q, theta, omega), Gamma2_sym, "numpy")
+        self.PE     = lambdify((E, A, I, r, rho, l, g, q, theta, omega),         PE, "numpy")
 
     def intProps(self, args):
        
@@ -125,10 +127,10 @@ class GEBF_Element2D(Body):
         # this is effectively the kinematics loop for this planar simple problem
         omega = np.array([u[0],u[0]+u[3]])
 
-        M      = self.M(     self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
-        beta   = self.beta(  self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
-        Gamma1 = self.Gamma1(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
-        Gamma2 = self.Gamma2(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        M       = self.M(     self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        beta    = self.beta(  self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        Gamma1  = self.Gamma1(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        Gamma2  = self.Gamma2(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
         
         M11 = np.array(M[0:3,0:3])
         M12 = np.array(M[0:3,3:6])
@@ -138,8 +140,8 @@ class GEBF_Element2D(Body):
         # For now use these definitions to cast Fic (constraint forces between GEBF elements) 
         # into generalized constraint forces
         gamma11 = Gamma1[0:3,:]
-        gamma12 = Gamma1[3:6,:]
-        gamma21 = Gamma2[0:3,:]
+        gamma21 = Gamma1[3:6,:]
+        gamma12 = Gamma2[0:3,:]
         gamma22 = Gamma2[3:6,:]
 
         # partition beta into lambda13 and lambda23
@@ -160,6 +162,9 @@ class GEBF_Element2D(Body):
 
         self.z13 = Chi1.dot(gamma13 - M12.dot(iM22.dot(gamma23))).reshape((3,1))
         self.z23 = Chi2.dot(gamma23 - M21.dot(iM11.dot(gamma13))).reshape((3,1))
+
+        self.PE  = self.PEfunc(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+
 
     
 # class ANCF_Element2D():
