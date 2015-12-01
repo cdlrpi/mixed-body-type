@@ -1,7 +1,7 @@
 function visualize(l,Time,ne,pe,ve,rho,A,g,Y,II,M,L)
 
 h = figure(1);
-vidObj = VideoWriter('ANCF6.avi');
+% vidObj = VideoWriter('ANCF6.avi');
 
 ST = [];
 PT = [];
@@ -74,5 +74,5 @@ for i = 1:20:length(Time)
     count = count+1;
     pause(0.0001);
 end
-close(h)
-close(vidObj);
+% close(h)
+% close(vidObj);
