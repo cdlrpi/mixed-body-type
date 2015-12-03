@@ -45,9 +45,9 @@ def get_topology_2DGEBF(q,r0,l,nelements,npoints):
     position_element = np.array_split(position,nelements,axis=1)
     
     # interpolate 
-    s = np.linspace(-1,1,npoints)
-    h1 = 1/2*(1 - s)
-    h2 = 1/2*(1 + s)
+    x = np.linspace(0,l,npoints)
+    h1 = (1 - x/l) 
+    h2 = (x/l)
 
     # Compute shape function matrix
     H = np.array([np.hstack((h1*np.eye(2), h2*np.eye(2))) 
@@ -107,6 +107,8 @@ def get_energy_Rigid(bodies,state):
     lcm.insert(0,0)
     lcm = np.array(lcm)
     hcm = [lcm+hcmRel+y for y in ycm]
+    hcm = ycm
+    # hcm = [np.array(lcm)+np.array(hcmRel)]
 
     pe = np.sum([[9.81*body.m*h 
                 for body, h in zip(bodies,timestep)]

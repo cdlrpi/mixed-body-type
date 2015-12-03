@@ -44,6 +44,10 @@ class Body:
             Rigid_Body2D.intProps(self)
         elif body_type == 'gebf':
             GEBF_Element2D.intProps(self, args)
+    
+    def energy(self, body_type, *args):
+        if body_type == 'gebf':
+            return GEBF_Element2D.energy(self, args)
 
 # Rigid_Body is the class that defines inertial properties of a rigid body
 class Rigid_Body2D(Body):
@@ -96,25 +100,34 @@ class GEBF_Element2D(Body):
         self.rho = args[4]
         self.l   = args[5]
         self.g   = args[6]
-
+        
         q = sym.Matrix(sym.symarray('q',6))
+        qdot = sym.Matrix(sym.symarray('qdot',len(q)))
+
         E, A, I, r, rho, l, g = sym.symbols('E A I r rho l g')
         theta = sym.Matrix(['theta_1','theta_2'])
         omega = sym.Matrix(['omega_1','omega_2'])
+
         
         # Load symbolic needed matricies and vectors
-        M_sym      = pickle.load( open( "gebf-mass-matrix.dump",  "rb" ) )
-        beta_sym   = pickle.load( open( "gebf-force-vector.dump", "rb" ) )
-        Gamma1_sym = pickle.load( open( "gebf-1c-matrix.dump",    "rb" ) )
-        Gamma2_sym = pickle.load( open( "gebf-2c-matrix.dump",    "rb" ) )
+        M_sym      = pickle.load( open( "gebf-mass-matrix.dump",   "rb" ) )
+        beta_sym   = pickle.load( open( "gebf-force-vector.dump",  "rb" ) )
+        Gamma1_sym = pickle.load( open( "gebf-1c-matrix.dump",     "rb" ) )
+        Gamma2_sym = pickle.load( open( "gebf-2c-matrix.dump",     "rb" ) )
+        SE_sym     = pickle.load( open( "gebf-strain-energy.dump", "rb" ) )
+        PE_sym     = pickle.load( open( "gebf-PE.dump",            "rb" ) )
+        KE_sym     = pickle.load( open( "gebf-KE.dump",            "rb" ) )
 
         # Create numeric function of needed matrix and vector quantities
         # this is MUCH MUCH faster than .subs()
         # .subs() is unusably slow !!
-        self.M      = lambdify((E, A, I, r, rho, l, g, q, theta, omega),      M_sym, "numpy")
-        self.beta   = lambdify((E, A, I, r, rho, l, g, q, theta, omega),   beta_sym, "numpy")
-        self.Gamma1 = lambdify((E, A, I, r, rho, l, g, q, theta, omega), Gamma1_sym, "numpy")
-        self.Gamma2 = lambdify((E, A, I, r, rho, l, g, q, theta, omega), Gamma2_sym, "numpy")
+        self.M       = lambdify((E, A, I, r, rho, l, g, q, theta, omega),      M_sym, "numpy")
+        self.beta    = lambdify((E, A, I, r, rho, l, g, q, theta, omega),   beta_sym, "numpy")
+        self.Gamma1  = lambdify((E, A, I, r, rho, l, g, q, theta, omega), Gamma1_sym, "numpy")
+        self.Gamma2  = lambdify((E, A, I, r, rho, l, g, q, theta, omega), Gamma2_sym, "numpy")
+        self.SE_func = lambdify((E, A, I, r, rho, l, g, q, theta, omega),     SE_sym, "numpy")
+        self.PE_func = lambdify((E, A, I, r, rho, l, g, q, theta, omega),     PE_sym, "numpy")
+        self.KE_func = lambdify((E, A, I, r, rho, l, g, q, qdot, theta,  omega),     KE_sym, "numpy")
 
     def intProps(self, args):
        
@@ -124,11 +137,12 @@ class GEBF_Element2D(Body):
         theta = np.array([q[0],q[0]+q[3]])
         # this is effectively the kinematics loop for this planar simple problem
         omega = np.array([u[0],u[0]+u[3]])
+        
 
-        M      = self.M(     self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
-        beta   = self.beta(  self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
-        Gamma1 = self.Gamma1(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
-        Gamma2 = self.Gamma2(self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        M       = self.M(      self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        beta    = self.beta(   self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        Gamma1  = self.Gamma1( self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        Gamma2  = self.Gamma2( self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
         
         M11 = np.array(M[0:3,0:3])
         M12 = np.array(M[0:3,3:6])
@@ -162,6 +176,18 @@ class GEBF_Element2D(Body):
         self.z23 = Chi2.dot(gamma23 - M21.dot(iM11.dot(gamma13))).reshape((3,1))
 
     
+    def energy(self, args):
+
+        q  = args[0]
+        u  = args[1] 
+        theta = np.array([q[0],q[0]+q[3]])
+        # this is effectively the kinematics loop for this planar simple problem
+        omega = np.array([u[0],u[0]+u[3]])
+        
+        SE = self.SE_func( self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        PE = self.PE_func( self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, theta, omega)
+        KE = self.KE_func( self.E, self.A, self.I, self.r, self.rho, self.l, self.g, q, u, theta,  omega)
+        return SE,PE,KE
 # class ANCF_Element2D():
 #     def __init__(self, area, modulus, inertia, density, length, state):
 #         """
