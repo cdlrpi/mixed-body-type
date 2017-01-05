@@ -1,14 +1,15 @@
 
 clear
 clc
-ne  =  2;
+ne  =  10;
 L   =  1.2;
 Y   =  0.7e6;
 I   =  1.215e-8;
 A   =  0.0018;
 rho =  5540;
-% l   =  L/ne;
-l = 0.12
+% l = 0.12
+l   =  L/ne;
+
 g   =  9.81;
 II  =  I;
 ipe = zeros(8,ne);

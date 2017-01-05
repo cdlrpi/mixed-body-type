@@ -36,7 +36,7 @@ size(ipe)
 M    =  [M11, M12; M21, M22];
 iM   =  inv(M);
 dt   =  0.0001;
-endT =  0.0001;
+endT =  0.5000;
 Time =  0:dt:endT;
 tic
 [pe ve]  =  ODEDCAANCFRK4(dt,Time,ipe,ive,ne,iM,l,rho,A,Y,I);

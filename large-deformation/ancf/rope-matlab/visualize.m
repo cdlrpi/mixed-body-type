@@ -74,5 +74,6 @@ for i = 1:20:length(Time)
     count = count+1;
     pause(0.0001);
 end
+keyboard
 % close(h)
 % close(vidObj);
