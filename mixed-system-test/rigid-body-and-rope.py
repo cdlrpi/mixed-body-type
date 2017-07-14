@@ -5,6 +5,11 @@
 
 # In[1]:
 
+from __future__ import division
+from scipy.integrate import odeint
+from IPython.display import display
+from sympy.interactive import printing
+
 import pdb as pdb 
 import math
 import time
@@ -13,7 +18,6 @@ import scipy as sc
 import cProfile
 import pdb as pdb 
 
-from scipy.integrate import odeint
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -22,9 +26,6 @@ import MBstructs as MBS
 import MBfuncts as MBF
 import DCA
 
-from IPython.display import display
-from __future__ import division
-from sympy.interactive import printing
 printing.init_printing(use_latex='mathjax')
 np.set_printoptions(precision=4,suppress=True)
 
@@ -333,9 +334,9 @@ np.savetxt('gebf-mixed-energy.mat', energy, fmt='%3.16f')
 
 nsteps = tspan.size
 
-for m in np.linspace(0,nsteps,5)
-data = np.hstack((np.squeeze(x[m]).reshape(63,1), np.squeeze(y[m]).reshape(63,1)))
-np.savetxt('gebf-mixed-dyn-%d.mat' %d, data, fmt='%3.16f') 
+for m in np.linspace(0,nsteps,5):
+    data = np.hstack((np.squeeze(x[m]).reshape(63,1), np.squeeze(y[m]).reshape(63,1)))
+    np.savetxt('gebf-mixed-dyn-%d.mat' %d, data, fmt='%3.16f') 
 # data = np.hstack((np.squeeze(x[1000]).reshape(63,1), np.squeeze(y[1000]).reshape(63,1)))
 # np.savetxt('gebf-mixed-dyn-1000.mat', data, fmt='%3.16f') 
 # data = np.hstack((np.squeeze(x[1500]).reshape(63,1), np.squeeze(y[1500]).reshape(63,1)))
@@ -375,7 +376,7 @@ np.savetxt('gebf-mixed-dyn-%d.mat' %d, data, fmt='%3.16f')
 
 # In[3]:
 
-np.linspace(0,5000,5)
+# np.linspace(0,5000,5)
 
 
 # In[ ]:
